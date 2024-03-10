@@ -19,7 +19,20 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
+library(readr)
 library(palmerpenguins)
+library(ggrepel)
+library(maps)
+library(here)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(statebins)
+
+#### Read in cleaned data ####
+cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
+cleaned_data_survey <- read_csv(file = here("data/analysis_data/ns20191003_cleaned.csv"), show_col_types = FALSE)
 ```
 
 
@@ -32,13 +45,233 @@ The remainder of this paper is structured as follows. @sec-data....
 
 
 # Data {#sec-data}
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-age-group
+#| fig-cap: Distribution of Sample and Population by Age Group
+# Read in the survey data
+survey_data <- cleaned_data_survey
+
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Count the number of occurrences in each age group and calculate percentages for the survey data
+survey_counts <- survey_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Count the number of occurrences in each age group and calculate percentages for the post-strat data
+post_strat_counts <- post_strat_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the percentages into a single data frame for plotting
+combined_percentages <- rbind(
+  data.frame(dataset = 'Survey', age_group = survey_counts$age_group, percentage = survey_counts$percentage),
+  data.frame(dataset = 'Post-Strat', age_group = post_strat_counts$age_group, percentage = post_strat_counts$percentage)
+)
+
+# Plot the percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_percentages, aes(x = age_group, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Age Group", y = "Proportion", title = "Distribution of Sample and Population by Age Group") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+
+```
+
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-gender
+#| fig-cap: Distribution of Sample and Population by Gender
+# Read in the survey data
+survey_data <- cleaned_data_survey
+
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Calculate percentages for the survey data by gender
+survey_gender <- survey_data %>%
+  group_by(gender) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Calculate percentages for the post-strat data by gender
+post_strat_gender <- post_strat_data %>%
+  group_by(sex) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the gender percentages into a single data frame for plotting
+combined_gender_percentages <- rbind(
+  data.frame(dataset = 'Survey', gender = survey_gender$gender, percentage = survey_gender$percentage),
+  data.frame(dataset = 'Post-Strat', gender = post_strat_gender$sex, percentage = post_strat_gender$percentage)
+)
+
+# Plot the gender percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_gender_percentages, aes(x = gender, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Gender", y = "Proportion", title = "Distribution of Sample and Population by Gender") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+
+```
+
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-race
+#| fig-cap: Distribution of Sample and Population by Race Ethnicity
+# Read in the survey data
+survey_data <- cleaned_data_survey
+
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Calculate percentages for the survey data by race
+survey_race <- survey_data %>%
+  group_by(race_ethnicity) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Calculate percentages for the post-strat data by race
+post_strat_race <- post_strat_data %>%
+  group_by(race) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the race percentages into a single data frame for plotting
+combined_race_percentages <- rbind(
+  data.frame(dataset = 'Survey', race = survey_race$race_ethnicity, percentage = survey_race$percentage),
+  data.frame(dataset = 'Post-Strat', race = post_strat_race$race, percentage = post_strat_race$percentage)
+)
+
+# Adjust the factor levels for the 'race' column to specify the order
+combined_race_percentages$race <- factor(combined_race_percentages$race, 
+                                                    levels = c("White", "Black", "Asian", "American Indian", "Other"))
+
+# Plot the race percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_race_percentages, aes(x = race, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Race", y = "Proportion", title = "Distribution of Sample and Population by Race Ethnicity") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+```
+
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-education
+#| fig-cap: Distribution of Sample and Population by Education
+# Read in the survey data
+survey_data <- cleaned_data_survey
+
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Calculate percentages for the survey data by education
+survey_education <- survey_data %>%
+  group_by(education) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Calculate percentages for the post-strat data by education
+post_strat_education <- post_strat_data %>%
+  group_by(education) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the education percentages into a single data frame for plotting
+combined_education_percentages <- rbind(
+  data.frame(dataset = 'Survey', education = survey_education$education, percentage = survey_education$percentage),
+  data.frame(dataset = 'Post-Strat', education = post_strat_education$education, percentage = post_strat_education$percentage)
+)
+
+# Adjust the factor levels for the 'education' column to specify the order
+combined_education_percentages$education <- factor(combined_education_percentages$education, 
+                                                    levels = c("High school or less", "Some college", "College degree", "Postgrad"))
+
+# Plot the education percentages with the adjusted order
+ggplot(combined_education_percentages, aes(x = education, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Education", y = "Proportion", title = "Distribution of Sample and Population by Education") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+
+```
 
 ## Survey Data
 
 Some of our data is of penguins (@fig-bills), from @palmerpenguins.
 
 ```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-voters-intention-to-vote-for-trump
+#| tbl-cap: Voters Intention to Support Trump
+data <- cleaned_data_survey
 
+# Prepare the data with specified order
+trump_counts <- data %>%
+  mutate(consider_trump = factor(consider_trump, levels = c("Yes", "No", "Other"))) %>%
+  count(consider_trump, name = "Number of Respondents") %>%
+  mutate(`Proportion (%)` = (`Number of Respondents` / sum(`Number of Respondents`)) * 100) %>%
+  mutate(`Proportion (%)` = round(`Proportion (%)`, 2)) %>%
+  rename(`Response` = consider_trump)
+
+# Use kable to create the table
+kable(trump_counts, format = "latex", booktabs = TRUE, align = "c") %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"), full_width = FALSE)
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-voters-intention-of-their-primary-party
+#| tbl-cap: Voters Intention of Their Primary Party
+data <- cleaned_data_survey
+
+# Prepare the data with specified order
+party_preference_counts <- data %>%
+  mutate(primary_party = factor(primary_party, levels = c("Democratic", "Republican", "Other"))) %>%
+  count(primary_party, name = "Number of Respondents") %>%
+  mutate(`Proportion (%)` = (`Number of Respondents` / sum(`Number of Respondents`)) * 100) %>%
+  mutate(`Proportion (%)` = round(`Proportion (%)`, 2)) %>%
+  rename(`Party Preference` = primary_party)
+
+# Use kable to create the table
+kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"), full_width = FALSE)
 ```
 
 Talk more about it.
@@ -48,10 +281,6 @@ And also planes (@fig-planes). (You can change the height and width, but don't w
 ## Post-stratification Data 
 
 Some of our data is of penguins (@fig-bills), from @palmerpenguins.
-
-```{r}
-
-```
 
 Talk more about it.
 
@@ -64,14 +293,14 @@ And also planes (@fig-planes). (You can change the height and width, but don't w
 #| warning: false
 #| message: false
 
-analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+# analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
 
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
-  theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
+# analysis_data |> 
+#  ggplot(aes(x = width, y = length)) +
+#  geom_point(alpha = 0.8) +
+#  theme_minimal() +
+#  labs(x = "Wing width (mm)",
+#       y = "Wing length (mm)")
 ```
 
 Talk way more about it. 
@@ -112,8 +341,7 @@ Our results are summarized in @tbl-modelresults.
 
 library(rstanarm)
 
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
+# first_model <- readRDS(file = here::here("models/first_model.rds"))
 ```
 
 ```{r}
@@ -123,13 +351,13 @@ first_model <-
 #| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
+# modelsummary::modelsummary(
+#  list(
+#    "First model" = first_model
+#  ),
+#  statistic = "mad",
+#  fmt = 2
+# )
 ```
 
 
@@ -175,15 +403,15 @@ In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. Th
 #| fig-cap: "Examining how the model fits, and is affected by, the data"
 #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
 
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
+#pp_check(first_model) +
+#  theme_classic() +
+#  theme(legend.position = "bottom")
 
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
+#posterior_vs_prior(first_model) +
+#  theme_minimal() +
+#  scale_color_brewer(palette = "Set1") +
+#  theme(legend.position = "bottom") +
+#  coord_flip()
 ```
 
 ## Diagnostics
@@ -202,9 +430,9 @@ posterior_vs_prior(first_model) +
 #| fig-subcap: ["Trace plot", "Rhat plot"]
 #| layout-ncol: 2
 
-plot(first_model, "trace")
+#plot(first_model, "trace")
 
-plot(first_model, "rhat")
+#plot(first_model, "rhat")
 ```
 
 
