@@ -1,10 +1,10 @@
 #### Preamble ####
-# Purpose: Cleans the raw plane data recorded by two observers..... [...UPDATE THIS...]
+# Purpose: Cleans the raw survey data
 # Author: Jeongwoo Kim, Jiwon Choi
 # Date: 9 March 2024
 # Contact: jwon.choi@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 01-download_data.R
+# Pre-requisites: scripts/01-download_data.R
 
 #### Workspace setup ####
 library(haven)

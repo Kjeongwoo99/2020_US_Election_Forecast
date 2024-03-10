@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Cleans the raw plane data recorded by two observers..... [...UPDATE THIS...]
+# Purpose: Cleans the raw post-strat data
 # Author: Jeongwoo Kim, Jiwon Choi
 # Date: 9 March 2024
 # Contact: jwon.choi@mail.utoronto.ca
