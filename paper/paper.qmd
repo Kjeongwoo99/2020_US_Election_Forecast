@@ -19,9 +19,21 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
+library(readr)
 library(palmerpenguins)
-```
+library(ggrepel)
+library(maps)
+library(here)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(statebins)
 
+#### Read in cleaned data ####
+cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
+cleaned_data_survey <- read_csv(file = here("data/analysis_data/ns20191003_cleaned.csv"), show_col_types = FALSE)
+```
 
 # Introduction
 
@@ -29,13 +41,27 @@ You can and should cross-reference sections and sub-sections. We use @citeR and 
 
 The remainder of this paper is structured as follows. @sec-data....
 
-
-
 # Data {#sec-data}
+
+We have used two datasets for this study. One is the U.S election survey data of Democracy Fund + UCLA Nationscape dataset from the Voter Study Group, conducted on October 3, 2019. Second is the census data from IPUMS America Census Service, which is used as the post-stratification data for the survey data to adjust the weight.
 
 ## Survey Data
 
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+This survey data is an 18-month election study conducted by UCLA researchers with roughly 6250 online interviews each from from July 2019 to February 2021 (@citeSurveyData). The sample is weighted to represent the U.S. adult population (@citeSurveyData). Nationscape groups weight on the following important factors: gender, the four major census regions, race, Hispanic ethnicity, household income, education, age, language spoken at home, nativity, 2016 presidential vote, and the urban-rural mix of the respondent's ZIP code (@citeSurveyData). According to the data, Male make up 48.3% while female make up 51.3% (@citeSurveyData). 74.2% of the respondents are White, 6.8% are Asian/Pacific, 12% are Black (@citeSurveyData). 20.4% are those between 18-29, 33.4% are 30-49, 32.4% are 50-69, 3.3% are 70+ (@citeSurveyData). On average, 5.1 percent declined immediately among those who are selected for the survey. 16.7 percent of the respondents did not complete the survey. Another 5.9 percent were categorized as speeding or straight-line which means they completed the survey in less than 6 minutes or selected the same response for every question in the three policy question batteries. Leaving these out leave 72.4 percent of the original sample for the analysis.
+
+The Nationscape survey's strength lies in its methodological rigor - the effectiveness in collecting large samples from the U.S. citizen and its weighting strategy desinged to mirror the U.S. adult population by including weight factors such as age, gender, race and income and more. As they filter out inaccurate or missing data, it makes sure that the data collected are accurate and ensures data integrity. While other datasets such as the General Social Survey (GSS) and the American National Election Studies (ANES) are available, the Nationscape dataset's frequency (surveys collected every week) give it an advantage in analyzing electoral trends and shifts in real-time. Its' extensive sample size also justifies the choice of this dataset.
+
+For our analysis, we decided to focus on five demographics: age, gender, education, race and state. Age is important because in general, voters tend to become more conservative as they get older. To account for the age difference, we divided the age group into four categories: 18-29, 30-49, 50-69 and 70+.
+
+Gender is also an important category because in general, men tend be more conservative and women tend to be more liberal. Recently, gender issues are growing social issues and this may affect the election, hence we wanted to explore how this affects our model.
+
+Education is also an interesting factor. In the past, non-college white voters used to support Democrats while college-educated white voters supported Republicans (@Harris). However, there has been a switch in this trend as 61 percent of non-college white voters showed their support wheres just 45 percent of college-educated white voters did in the exit polls (@Harris). Only 37 percent of those without a degree cast their votes for Democrats while 53 percent with a degree did so (@Harris). We categorized education into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'.
+
+Race also needs some attention because normally non-white groups are highly in favour of Democrats regardless of candidates and white swing by depending on candidates. According to the statistics collected in 2016, 93% of black, 71% of Latino, 68% of Asian support democrats while only 41% of white support democrats (@Prokop). As white voters make up 74% of the voting population, it is really important for both parties to attain this demographic group.
+
+Lastly, states are very important as some states historically favor conservatives while some states vote for democrats. In general, the west and the east coasts are democrat supporters whereas south are conservative supporters.
+
+## Post-stratification Data
 
 ```{r}
 
@@ -45,38 +71,135 @@ Talk more about it.
 
 And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
 
-## Post-stratification Data 
-
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
-
-```{r}
-
-```
-
-Talk more about it.
-
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
-
-```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
+```{r fig.width=10, fig.height=5}
 #| echo: false
-#| warning: false
 #| message: false
+#| warning: false
+#| label: fig-distribution-by-age-group
+#| fig-cap: Distribution of Sample and Population by Age Group
 
-analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+# Read in the survey data
+survey_data <- cleaned_data_survey
 
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Count the number of occurrences in each age group and calculate percentages for the survey data
+survey_counts <- survey_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Count the number of occurrences in each age group and calculate percentages for the post-strat data
+post_strat_counts <- post_strat_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the percentages into a single data frame for plotting
+combined_percentages <- rbind(
+  data.frame(dataset = 'Survey', age_group = survey_counts$age_group, percentage = survey_counts$percentage),
+  data.frame(dataset = 'Post-Strat', age_group = post_strat_counts$age_group, percentage = post_strat_counts$percentage)
+)
+
+# Plot the percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_percentages, aes(x = age_group, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Age Group", y = "Proportion", title = "Distribution of Sample and Population by Age Group") +
   theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
+  scale_fill_manual(values = c("orange", "green"))
 ```
 
-Talk way more about it. 
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-gender
+#| fig-cap: Distribution of Sample and Population by Gender
 
+# Read in the survey data
+survey_data <- cleaned_data_survey
 
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Calculate percentages for the survey data by gender
+survey_gender <- survey_data %>%
+  group_by(gender) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Calculate percentages for the post-strat data by gender
+post_strat_gender <- post_strat_data %>%
+  group_by(sex) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the gender percentages into a single data frame for plotting
+combined_gender_percentages <- rbind(
+  data.frame(dataset = 'Survey', gender = survey_gender$gender, percentage = survey_gender$percentage),
+  data.frame(dataset = 'Post-Strat', gender = post_strat_gender$sex, percentage = post_strat_gender$percentage)
+)
+
+# Plot the gender percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_gender_percentages, aes(x = gender, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Gender", y = "Proportion", title = "Distribution of Sample and Population by Gender") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-voters-intention-to-vote-for-trump
+#| tbl-cap: Voters Intention to Support Trump
+data <- cleaned_data_survey
+
+# Prepare the data with specified order
+trump_counts <- data %>%
+  mutate(consider_trump = factor(consider_trump, levels = c("Yes", "No", "Other"))) %>%
+  count(consider_trump, name = "Number of Respondents") %>%
+  mutate(`Proportion (%)` = (`Number of Respondents` / sum(`Number of Respondents`)) * 100) %>%
+  mutate(`Proportion (%)` = round(`Proportion (%)`, 2)) %>%
+  rename(`Response` = consider_trump)
+
+# Use kable to create the table
+kable(trump_counts, format = "latex", booktabs = TRUE, align = "c") %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"), full_width = FALSE)
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-voters-intention-of-their-primary-party
+#| tbl-cap: Voters Intention of Their Primary Party
+data <- cleaned_data_survey
+
+# Prepare the data with specified order
+party_preference_counts <- data %>%
+  mutate(primary_party = factor(primary_party, levels = c("Democratic", "Republican", "Other"))) %>%
+  count(primary_party, name = "Number of Respondents") %>%
+  mutate(`Proportion (%)` = (`Number of Respondents` / sum(`Number of Respondents`)) * 100) %>%
+  mutate(`Proportion (%)` = round(`Proportion (%)`, 2)) %>%
+  rename(`Party Preference` = primary_party)
+
+# Use kable to create the table
+kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"), full_width = FALSE)
+```
 
 # Model
 
@@ -86,8 +209,9 @@ Here we briefly describe the Bayesian analysis model used to investigate... Back
 
 ## Model set-up
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
+Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
 
+```{=tex}
 \begin{align} 
 y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \mu_i &= \alpha + \beta_i + \gamma_i\\
@@ -96,9 +220,8 @@ y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \gamma &\sim \mbox{Normal}(0, 2.5) \\
 \sigma &\sim \mbox{Exponential}(1)
 \end{align}
-
+```
 We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
-
 
 # Results
 
@@ -112,8 +235,7 @@ Our results are summarized in @tbl-modelresults.
 
 library(rstanarm)
 
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
+
 ```
 
 ```{r}
@@ -123,22 +245,14 @@ first_model <-
 #| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
+
 ```
-
-
 
 # Discussion
 
 ## First discussion point {#sec-first-point}
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this.
 
 ## Second discussion point
 
@@ -152,8 +266,7 @@ Weaknesses and next steps should also be included.
 
 \appendix
 
-# Appendix {-}
-
+# Appendix {.unnumbered}
 
 # Additional data details
 
@@ -163,7 +276,7 @@ Weaknesses and next steps should also be included.
 
 In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
 
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows...
 
 ```{r}
 #| eval: true
@@ -175,15 +288,7 @@ In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. Th
 #| fig-cap: "Examining how the model fits, and is affected by, the data"
 #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
 
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
 
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
 ```
 
 ## Diagnostics
@@ -202,16 +307,9 @@ posterior_vs_prior(first_model) +
 #| fig-subcap: ["Trace plot", "Rhat plot"]
 #| layout-ncol: 2
 
-plot(first_model, "trace")
 
-plot(first_model, "rhat")
 ```
-
-
 
 \newpage
 
-
 # References
-
-
