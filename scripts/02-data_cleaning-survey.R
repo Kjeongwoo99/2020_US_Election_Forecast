@@ -43,7 +43,7 @@ cleaned_data_survey <- survey_data %>%
       TRUE ~ "Unknown"
     ),
     education = case_when(
-      education %in% 1:4 ~ "Highschool or less",
+      education %in% 1:4 ~ "High school or less",
       education %in% 5:7 ~ "Some college",
       education == 8 ~ "College degree",
       education %in% 9:11 ~ "Postgrad",
@@ -59,10 +59,10 @@ cleaned_data_survey <- survey_data %>%
       TRUE ~ "Unknown"
     ),
     age_group = case_when(
-      age >= 18 & age <= 29 ~ "18~29",
-      age >= 30 & age <= 49 ~ "30~49",
-      age >= 50 & age <= 64 ~ "50~64",
-      age >= 65 ~ "65+",
+      age >= 18 & age <= 29 ~ "18-29",
+      age >= 30 & age <= 49 ~ "30-49",
+      age >= 50 & age <= 69 ~ "50-69",
+      age >= 70 ~ "70+",
       TRUE ~ "Unknown" # Handles any missing or unexpected age values
     ),
     gender = case_when(

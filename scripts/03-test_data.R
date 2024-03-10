@@ -1,5 +1,5 @@
 #### Preamble ####
-# Purpose: Tests the cleaned data from "data/analysis_data"
+# Purpose: Tests the cleaned data sets from "data/analysis_data"
 # Author: Jeongwoo Kim, Jiwon Choi
 # Date: 9 March 2024
 # Contact: jwon.choi@mail.utoronto.ca
