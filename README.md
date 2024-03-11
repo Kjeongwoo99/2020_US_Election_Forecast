@@ -20,7 +20,7 @@ The survey data from the Voter Study Group and the U.S. Census data from IPUMS c
 
 - Survey data from the Voter Study Group: To obtain this data, you can click https://www.voterstudygroup.org/data/nationscape, scroll down the page and type in your First Name, Last Name, and e-mail address to submit a request to download the full data set. This could take a day or two. They will send you a link to download the data. Once you have the access and click the link, you will have 5 files that include weekly crosstabs, a codebook, variables, and instructions in addition to the data file. We suggest you to download .dta files. The week data that we have decided to use for this analysis is 'ns20191003'. 
 
-- U.S. Census data from IPUMS: To obtain this data, you can visit the link: https://usa.ipums.org/usa/index.shtml. You willl need to create an account by filling in your name, organization and e-mail address and the purpose of the usage. Once you have completed this step, you can click 'Get Data' on the middle of the page. 
+- U.S. Census data from IPUMS: To obtain this data, you can visit the link: https://usa.ipums.org/usa/index.shtml. You will need to create an account by filling in your name, organization and e-mail address and the purpose of the usage. Once you have completed this step, you can click 'Get Data' on the middle of the page. 
 
 ## Statement on LLM usage
 
