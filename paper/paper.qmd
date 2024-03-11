@@ -63,13 +63,14 @@ Lastly, states are very important as some states historically favor conservative
 
 ## Post-stratification Data
 
+IPUMS ("Integrated Public Use Microdata Series") is a website that offers database of samples of the American population from the American Community Surveys of 2000-present. These samples provide rich qualitative information on the long-term changes in the population. We selected the '' data as the post-stratification dataset for our research. 
+
+The variables we have decided to use in this analysis from the dataset are 'sex', 'race', 'stateicp', 'age_group', and 'education'. We have filtered out the respondents who have answered 'other' or no available sex data from the raw dataset for simplicity of the analysis. Therefore, 'Sex' is categorized into 'Male' and 'Female'. 'Race' is divided into 'White', 'Black', 'Asian', 'American Indian' and 'other'. As mentioned earlier, the fact that white, black and Asian together make up around 93 percent of the U.S population, this categorization is justified. 'stateicp' is a record of all the states in the U.S. We have used the abbreviations for each state, for example, 'CT' for Connecticut, 'ME' for Maine, 'MA' for Massachusetts. We have the data of 55 states in total. 'age_group' categorized the respondents' age into four groups: '18-29', '30-49', '50-64' and '65+'. 'education' is divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. We filtered out those unknowns, and cleaned the dataset by assigning each respondent to the right category accordingly. 
+
 ```{r}
 
 ```
 
-Talk more about it.
-
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
 
 ```{r fig.width=10, fig.height=5}
 #| echo: false
