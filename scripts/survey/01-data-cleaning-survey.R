@@ -43,7 +43,7 @@ cleaned_data_survey <- survey_data %>%
       TRUE ~ "Unknown"
     ),
     education = case_when(
-      education %in% 1:4 ~ "Highschool or less",
+      education %in% 1:4 ~ "High school or less",
       education %in% 5:7 ~ "Some college",
       education == 8 ~ "College degree",
       education %in% 9:11 ~ "Postgrad",

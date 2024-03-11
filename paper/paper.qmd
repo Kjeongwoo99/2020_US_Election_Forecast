@@ -159,6 +159,88 @@ ggplot(combined_gender_percentages, aes(x = gender, y = percentage, fill = datas
   scale_fill_manual(values = c("orange", "green"))
 ```
 
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-race
+#| fig-cap: Distribution of Sample and Population by Race Ethnicity
+# Read in the survey data
+survey_data <- cleaned_data_survey
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+# Calculate percentages for the survey data by race
+survey_race <- survey_data %>%
+  group_by(race_ethnicity) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+# Calculate percentages for the post-strat data by race
+post_strat_race <- post_strat_data %>%
+  group_by(race) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+# Combine the race percentages into a single data frame for plotting
+combined_race_percentages <- rbind(
+  data.frame(dataset = 'Survey', race = survey_race$race_ethnicity, percentage = survey_race$percentage),
+  data.frame(dataset = 'Post-Strat', race = post_strat_race$race, percentage = post_strat_race$percentage)
+)
+# Adjust the factor levels for the 'race' column to specify the order
+combined_race_percentages$race <- factor(combined_race_percentages$race, 
+                                                    levels = c("White", "Black", "Asian", "American Indian", "Other"))
+# Plot the race percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_race_percentages, aes(x = race, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Race", y = "Proportion", title = "Distribution of Sample and Population by Race Ethnicity") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+```
+
+```{r fig.width=10, fig.height=5}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-education
+#| fig-cap: Distribution of Sample and Population by Education
+# Read in the survey data
+survey_data <- cleaned_data_survey
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+# Calculate percentages for the survey data by education
+survey_education <- survey_data %>%
+  group_by(education) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+# Calculate percentages for the post-strat data by education
+post_strat_education <- post_strat_data %>%
+  group_by(education) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+# Combine the education percentages into a single data frame for plotting
+combined_education_percentages <- rbind(
+  data.frame(dataset = 'Survey', education = survey_education$education, percentage = survey_education$percentage),
+  data.frame(dataset = 'Post-Strat', education = post_strat_education$education, percentage = post_strat_education$percentage)
+)
+# Adjust the factor levels for the 'education' column to specify the order
+combined_education_percentages$education <- factor(combined_education_percentages$education, 
+                                                    levels = c("High school or less", "Some college", "College degree", "Postgrad"))
+# Plot the education percentages with the adjusted order
+ggplot(combined_education_percentages, aes(x = education, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Education", y = "Proportion", title = "Distribution of Sample and Population by Education") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
+```
+
 ```{r}
 #| echo: false
 #| message: false

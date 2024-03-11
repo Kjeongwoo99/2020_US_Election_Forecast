@@ -44,8 +44,8 @@ cleaned_data <- raw_data %>%
          age_group = case_when(
            age >= 18 & age <= 29 ~ "18-29",
            age >= 30 & age <= 49 ~ "30-49",
-           age >= 50 & age <= 64 ~ "50-64",
-           age >= 65 ~ "65+",
+           age >= 50 & age <= 64 ~ "50-69",
+           age >= 70 ~ "70+",
            TRUE ~ "Unknown"
          ),
          race = case_when(
@@ -53,14 +53,14 @@ cleaned_data <- raw_data %>%
            race == 2 ~ "Black",
            race == 3 ~ "American Indian",
            race %in% c(4, 5, 6) ~ "Asian",
-           race %in% c(7, 8, 9) ~ "Others",
+           race %in% c(3, 7, 8, 9) ~ "Other",
            TRUE ~ "Unknown"
          ),
          education = case_when(
-           educd %in% c(0:60, 62, 63) ~ "High School or Less",
-           educd %in% c(64, 65:71, 73:81) ~ "Some College",
-           educd == 72 ~ "College Degree",
-           educd >= 82 ~ "Postgrad",
+           educd %in% c(0:60, 62, 63) ~ "High school or less",
+           educd %in% c(64, 65:71, 73:80) ~ "Some college",
+           educd %in% c(81, 82:113) ~ "College degree",
+           educd >= 114 ~ "Postgrad",
            TRUE ~ "Unknown"
          )) %>%
   select(-age, -educd) %>% # Remove the original 'age' and 'educd' columns to keep only the age group and education group
