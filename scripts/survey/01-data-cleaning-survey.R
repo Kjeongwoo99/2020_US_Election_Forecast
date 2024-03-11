@@ -2,7 +2,7 @@
 # Purpose: Cleans the raw survey data
 # Author: Jeongwoo Kim, Jiwon Choi
 # Date: 9 March 2024
-# Contact: jwon.choi@mail.utoronto.ca
+# Contact: jwoo.kim@mail.utoronto.ca, jwon.choi@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: scripts/01-download_data.R
 
