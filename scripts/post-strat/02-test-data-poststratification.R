@@ -13,8 +13,8 @@ library(lubridate)
 ### Test for the cleaned post-strat data ###
 cleaned_data <- read_csv("data/analysis_data/usa_00002_cleaned.csv")
 
-# Check if 'stateicp' contains only valid state abbreviations
-all(cleaned_data$stateicp %in% state_abbreviations)
+# Check if 'state' contains only valid state abbreviations
+all(cleaned_data$state %in% state_abbreviations)
 
 # Check if 'sex' contains only valid categories
 all(cleaned_data$sex %in% sex_categories)
@@ -39,7 +39,7 @@ all(cleaned_data$education %in% valid_education_levels)
 !"educd" %in% names(cleaned_data)
 
 # Applying is.character to each column and checking if all are TRUE
-columns_to_check <- c("sex", "stateicp", "race", "education", "age_group")
+columns_to_check <- c("sex", "state", "race", "education", "age_group")
 all(sapply(cleaned_data[columns_to_check], is.character))
 
 #### Test result ####

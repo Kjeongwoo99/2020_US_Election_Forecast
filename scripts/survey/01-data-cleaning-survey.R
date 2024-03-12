@@ -71,9 +71,10 @@ cleaned_data_survey <- survey_data %>%
       TRUE ~ "Unknown" # Handles any other cases as "Unknown"
     )
   ) %>%
+  rename(sex = gender, race = race_ethnicity) %>%
   select(-age) %>%
   # Filter step to remove rows with "Unknown" in any of the transformed columns
-  filter(!if_any(c(vote_intention, consider_trump, not_trump, primary_party, education, state, race_ethnicity, age_group, gender), ~ .x == "Unknown"))
+  filter(!if_any(c(vote_intention, consider_trump, not_trump, primary_party, education, state, race, age_group, sex), ~ .x == "Unknown"))
 
 # Save the cleaned data
 write_csv(cleaned_data_survey, "data/analysis_data/ns20191003_cleaned.csv")

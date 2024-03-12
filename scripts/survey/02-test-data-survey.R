@@ -31,7 +31,7 @@ all(cleaned_data_survey$education %in% valid_education)
 
 # Check unique values for 'race_ethnicity'
 valid_race_ethnicity <- c("White", "Black", "American Indian", "Asian", "Other")
-all(cleaned_data_survey$race_ethnicity %in% valid_race_ethnicity)
+all(cleaned_data_survey$race %in% valid_race_ethnicity)
 
 # Check unique values for 'age_group'
 valid_age_group <- c("18-29", "30-49", "50-69", "70+")
@@ -39,7 +39,7 @@ all(cleaned_data_survey$age_group %in% valid_age_group)
 
 # Check unique values for 'gender'
 valid_gender <- c("Female", "Male", "Unknown") # Including 'Unknown' if it was intentionally retained
-all(cleaned_data_survey$gender %in% valid_gender)
+all(cleaned_data_survey$sex %in% valid_gender)
 
 # Ensure no 'Unknown' values in key columns
 !any(cleaned_data_survey$vote_intention == "Unknown" |
@@ -47,9 +47,9 @@ all(cleaned_data_survey$gender %in% valid_gender)
        cleaned_data_survey$not_trump == "Unknown" |
        cleaned_data_survey$primary_party == "Unknown" |
        cleaned_data_survey$education == "Unknown" |
-       cleaned_data_survey$race_ethnicity == "Unknown" |
+       cleaned_data_survey$race == "Unknown" |
        cleaned_data_survey$age_group == "Unknown" |
-       cleaned_data_survey$gender == "Unknown")
+       cleaned_data_survey$sex == "Unknown")
 
 #### Test result ####
 # Result: All TRUE

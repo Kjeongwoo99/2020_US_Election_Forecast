@@ -63,6 +63,7 @@ cleaned_data <- raw_data %>%
            educd >= 114 ~ "Postgrad",
            TRUE ~ "Unknown"
          )) %>%
+  rename(state = stateicp) %>%
   select(-age, -educd) %>% # Remove the original 'age' and 'educd' columns to keep only the age group and education group
   # Filter step to remove rows with "Unknown" in any of the transformed columns
   filter(!if_any(c(sex, age_group, race, education), ~ .x == "Unknown"))
