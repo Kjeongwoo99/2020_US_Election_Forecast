@@ -139,14 +139,14 @@ survey_gender <- survey_data %>%
 
 # Calculate percentages for the post-strat data by gender
 post_strat_gender <- post_strat_data %>%
-  group_by(sex) %>%
+  group_by(gender) %>%
   summarise(count = n()) %>%
   mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
 
 # Combine the gender percentages into a single data frame for plotting
 combined_gender_percentages <- rbind(
   data.frame(dataset = 'Survey', gender = survey_gender$gender, percentage = survey_gender$percentage),
-  data.frame(dataset = 'Post-Strat', gender = post_strat_gender$sex, percentage = post_strat_gender$percentage)
+  data.frame(dataset = 'Post-Strat', gender = post_strat_gender$gender, percentage = post_strat_gender$percentage)
 )
 
 # Plot the gender percentages with specified bar width and percentage on y-axis, and label each bar
@@ -174,7 +174,7 @@ survey_data <- cleaned_data_survey
 post_strat_data <- cleaned_data_post_strat
 # Calculate percentages for the survey data by race
 survey_race <- survey_data %>%
-  group_by(race_ethnicity) %>%
+  group_by(race) %>%
   summarise(count = n()) %>%
   mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
 # Calculate percentages for the post-strat data by race
@@ -184,7 +184,7 @@ post_strat_race <- post_strat_data %>%
   mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
 # Combine the race percentages into a single data frame for plotting
 combined_race_percentages <- rbind(
-  data.frame(dataset = 'Survey', race = survey_race$race_ethnicity, percentage = survey_race$percentage),
+  data.frame(dataset = 'Survey', race = survey_race$race, percentage = survey_race$percentage),
   data.frame(dataset = 'Post-Strat', race = post_strat_race$race, percentage = post_strat_race$percentage)
 )
 # Adjust the factor levels for the 'race' column to specify the order
