@@ -24,7 +24,7 @@ survey_data$consider_trump_binary <- ifelse(survey_data$consider_trump == "Yes",
 
 # Fit the logistic regression model using the binary outcome variable
 political_preferences <- stan_glm(
-  consider_trump_binary ~ sex + education + age_group + race + state,
+  consider_trump_binary ~ gender + education + age_group + race + state,
   data = survey_data,
   family = binomial(link = "logit"),
   prior = normal(location = 0, scale = 2.5, autoscale = TRUE),

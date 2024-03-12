@@ -39,7 +39,7 @@ all(cleaned_data_survey$age_group %in% valid_age_group)
 
 # Check unique values for 'gender'
 valid_gender <- c("Female", "Male", "Unknown") # Including 'Unknown' if it was intentionally retained
-all(cleaned_data_survey$sex %in% valid_gender)
+all(cleaned_data_survey$gender %in% valid_gender)
 
 # Ensure no 'Unknown' values in key columns
 !any(cleaned_data_survey$vote_intention == "Unknown" |
@@ -49,7 +49,7 @@ all(cleaned_data_survey$sex %in% valid_gender)
        cleaned_data_survey$education == "Unknown" |
        cleaned_data_survey$race == "Unknown" |
        cleaned_data_survey$age_group == "Unknown" |
-       cleaned_data_survey$sex == "Unknown")
+       cleaned_data_survey$gender == "Unknown")
 
 #### Test result ####
 # Result: All TRUE

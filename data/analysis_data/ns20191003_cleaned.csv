@@ -1,4 +1,4 @@
-vote_intention,consider_trump,not_trump,primary_party,education,state,race,sex,age_group
+vote_intention,consider_trump,not_trump,primary_party,education,state,race,gender,age_group
 Yes,No,Other,Democratic,Postgrad,FL,White,Female,30-49
 Yes,No,Other,Democratic,College degree,NY,White,Female,70+
 Yes,No,Other,Democratic,Some college,CA,White,Female,50-69

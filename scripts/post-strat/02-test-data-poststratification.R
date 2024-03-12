@@ -16,8 +16,8 @@ cleaned_data <- read_csv("data/analysis_data/usa_00002_cleaned.csv")
 # Check if 'state' contains only valid state abbreviations
 all(cleaned_data$state %in% state_abbreviations)
 
-# Check if 'sex' contains only valid categories
-all(cleaned_data$sex %in% sex_categories)
+# Check if 'gender' contains only valid categories
+all(cleaned_data$gender %in% sex_categories)
 
 # Check if 'age_group' is categorized correctly
 valid_age_groups <- c("18-29", "30-49", "50-69", "70+")
@@ -32,14 +32,14 @@ valid_education_levels <- c("High school or less", "Some college", "College degr
 all(cleaned_data$education %in% valid_education_levels)
 
 # Check for absence of 'Unknown' in key columns
-!any(cleaned_data$sex == "Unknown" | cleaned_data$age_group == "Unknown" | cleaned_data$race == "Unknown" | cleaned_data$education == "Unknown")
+!any(cleaned_data$gender == "Unknown" | cleaned_data$age_group == "Unknown" | cleaned_data$race == "Unknown" | cleaned_data$education == "Unknown")
 
 # Ensure that original 'age' and 'educd' columns are removed
 !"age" %in% names(cleaned_data)
 !"educd" %in% names(cleaned_data)
 
 # Applying is.character to each column and checking if all are TRUE
-columns_to_check <- c("sex", "state", "race", "education", "age_group")
+columns_to_check <- c("gender", "state", "race", "education", "age_group")
 all(sapply(cleaned_data[columns_to_check], is.character))
 
 #### Test result ####
