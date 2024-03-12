@@ -13,15 +13,14 @@ library(rstanarm)
 # Load the trained logistic regression model
 political_preferences <- readRDS("models/consider_trump.rds")
 
-# Load the Census data (assuming it's been cleaned and optimized)
+# Load the Census data
 census_data <- read_csv("data/analysis_data/usa_00002_cleaned.csv")
 
-
+# reduce the size of data due to memory limit
 census_reduced <- 
   census_data |> 
   slice_sample(n = 100000)
 
-# Ensure that 'census_data' includes necessary columns and they are optimized for analysis
 
 # Use predict() to apply the model to the Census data
 # Here, type = "response" gives probabilities, which is what we want
@@ -31,5 +30,5 @@ predictions <- predict(political_preferences, newdata = census_reduced, type = "
 census_reduced$predicted_consider_trump_probability <- predictions
 
 # Save the updated census_data with predictions to an RDS file
-saveRDS(census_reduced, file = "data/census_data_with_predictions.rds")
+saveRDS(census_reduced, file = "models/census_data_with_predictions.rds")
 
