@@ -292,10 +292,6 @@ For our study, we employ a technique called multilevel regression with post-stra
 #| echo: false
 #| message: false
 #| warning: false
-#run the regression model using glm.
-# gender, age_groups, race, stateicp, education_level and hispanic are used to 
-# predit whether a person will vote biden or not
-
 model <- survey_model
 
 # Assuming 'model' is your model object from rstanarm
