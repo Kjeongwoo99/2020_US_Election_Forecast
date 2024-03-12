@@ -30,9 +30,11 @@ library(knitr)
 library(kableExtra)
 library(statebins)
 
-#### Read in cleaned data ####
+#### Read in necessary data and model ####
 cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
 cleaned_data_survey <- read_csv(file = here("data/analysis_data/ns20191003_cleaned.csv"), show_col_types = FALSE)
+survey_model <- readRDS(file = here("models/consider_trump.rds"))
+predicton_model <- readRDS(file = here("models/census_data_with_predictions.rds"))
 ```
 
 # Introduction
@@ -67,12 +69,7 @@ IPUMS ("Integrated Public Use Microdata Series") is a website that offers databa
 
 One strength of the IPUMS survey is the fact that it provides a comprehensive and extensive data with detailed demographic of the U.S. population with social, economic and housing characteristics, which is very useful in our analysis of the 2020 U.S presidential election forecast. The longitudinal data of this survey also allows researchers to analyze trends over time. The U.S. Census Bureau offers credibility of the data with high quality checks. The post-stratification process ensures correcting for sampling biases and non-response. On the other hand, since the survey relies on self-report, there lies a risk of response bias inherently. While it is an ongoing survey, there is still a time lag between the data collection and data availability. However, the large sample size, consistency and reliability of the data collection, the integrated data over time with post-stratification can justify the decision to utilize IPUMS data over other sources. 
 
-The variables we have decided to use in this analysis from the dataset are 'sex', 'race', 'stateicp', 'age_group', and 'education'. We have filtered out the respondents who have answered 'other' or no available sex data from the raw dataset for simplicity of the analysis. Therefore, 'Sex' is categorized into 'Male' and 'Female'. 'Race' is divided into 'White', 'Black', 'Asian', 'American Indian' and 'other'. As mentioned earlier, the fact that white, black and Asian together make up around 93 percent of the U.S population, this categorization is justified. 'stateicp' is a record of all the states in the U.S. We have used the abbreviations for each state, for example, 'CT' for Connecticut, 'ME' for Maine, 'MA' for Massachusetts. We have the data of 55 states in total. 'age_group' categorized the respondents' age into four groups: '18-29', '30-49', '50-64' and '65+'. 'education' is divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. We filtered out those unknowns, and cleaned the dataset by assigning each respondent to the right category accordingly. 
-
-```{r}
-
-```
-
+The variables we have decided to use in this analysis from the dataset are 'sex', 'race', 'stateicp', 'age_group', and 'educd'. We have filtered out the respondents who have answered 'other' or no available sex data from the raw dataset for simplicity of the analysis. Therefore, 'Sex' is categorized into 'Male' and 'Female'. 'Race' is divided into 'White', 'Black', 'Asian', 'American Indian' and 'Other'. As mentioned earlier, the fact that white, black and Asian together make up around 93 percent of the U.S population, this categorization is justified. 'stateicp' is a record of all the states in the U.S. We have used the abbreviations for each state, for example, 'CT' for Connecticut, 'ME' for Maine, 'MA' for Massachusetts. We have the data of 55 states in total. 'age_group' categorized the respondents' age into four groups: '18-29', '30-49', '50-64' and '65+'. 'education' is divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. We filtered out those unknowns, and cleaned the dataset by assigning each respondent to the right category accordingly. 
 
 ```{r fig.width=10, fig.height=5}
 #| echo: false
@@ -288,9 +285,35 @@ kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %
 
 # Model
 
-The goal of our modelling strategy is twofold. Firstly,...
+For our study, we employ a technique called multilevel regression with post-stratification (MRP). This approach involves creating a model based on a smaller data set, such as our survey data, and then extending the model's findings to a larger population.
 
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#run the regression model using glm.
+# gender, age_groups, race, stateicp, education_level and hispanic are used to 
+# predit whether a person will vote biden or not
+
+model <- survey_model
+
+# Assuming 'model' is your model object from rstanarm
+library(broom.mixed)
+
+coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
+
+# Assuming you have knitr and kableExtra already installed and loaded
+library(knitr)
+library(kableExtra)
+
+knitr::kable(coefficients,
+             caption = "Coefficients from the Model",
+             digits = 2) %>%
+  kableExtra::kable_styling(latex_options = "scale_down")
+
+```
+
 
 ## Model set-up
 
