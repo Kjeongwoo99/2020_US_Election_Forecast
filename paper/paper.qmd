@@ -287,30 +287,6 @@ kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %
 
 For our study, we employ a technique called multilevel regression with post-stratification (MRP). This approach involves creating a model based on a smaller data set, such as our survey data, and then extending the model's findings to a larger population.
 
-
-```{r}
-#| echo: false
-#| message: false
-#| warning: false
-model <- survey_model
-
-# Assuming 'model' is your model object from rstanarm
-library(broom.mixed)
-
-coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
-
-# Assuming you have knitr and kableExtra already installed and loaded
-library(knitr)
-library(kableExtra)
-
-knitr::kable(coefficients,
-             caption = "Coefficients from the Model",
-             digits = 2) %>%
-  kableExtra::kable_styling(latex_options = "scale_down")
-
-```
-
-
 ## Model set-up
 
 Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
@@ -325,15 +301,14 @@ y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \sigma &\sim \mbox{Exponential}(1)
 \end{align}
 ```
+
 We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
 
 # Results
 
 ```{r}
 #| echo: false
-#| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| message: false
 #| warning: false
 
 library(rstanarm)
@@ -341,38 +316,37 @@ library(rstanarm)
 survey_data$consider_trump_binary <- ifelse(survey_data$consider_trump == "Yes", 1, 0)
 survey_model_now <- glm(consider_trump_binary ~ gender + education + age_group + race + state,data = survey_data,family = binomial(link = "logit"))
   
-# get proportions by demographic, then find proportion of each cell relative to population
+# group by each demographic
 post_props <- post_strat_data %>% 
   group_by(state, race, age_group, gender, education) %>% 
   summarise(n = n(), .groups ='drop') %>% 
   group_by(state) %>% 
   mutate(prop = n/sum(n))
 
-# generate predictions for each of our grouped cells
+# estimate of the model 
 post_props$estimate <- predict.glm(survey_model_now, newdata = post_props,
                           type = "response")
 
-# create a new column with number of voters from each cell voting Trump
+# new column with the number of voters for Trump
 post_props <- post_props %>% mutate(num_voters = n*estimate)
 
-# get errors for our prediction
+# error terms 
 errors <- predict.glm(survey_model_now, newdata = post_props,
                       type = "response", se.fit = T)
 lower <- errors$fit - errors$se.fit
 upper <- errors$fit + errors$se.fit
 
-# combine the proportions and the errors we generated
+# combine errors with proportions
 post_props_error <- cbind(post_props, lower, upper)
 post_props_error <- post_props_error %>% 
   rename("lower" = ...10,
          "upper" = ...11)
 
-# create a new column with number of voters from each cell voting Biden
+# new column of voters for trump 
 post_props_error <- post_props_error %>% mutate(num_voters_lower = n*lower,
                                 num_voters_upper = n*upper)
 
-# create a new dataset which contains upper and lower estimates for proportions
-# of votes for each state
+# confidence intervals for errors 
 vote_trump <- post_props_error %>% mutate(trump_prop=estimate*prop,
                                        trump_prop_lower = lower*prop,
                                        trump_prop_upper = upper*prop) %>%
@@ -383,31 +357,29 @@ vote_trump <- post_props_error %>% mutate(trump_prop=estimate*prop,
 
 ```
 
-```{r stateplot} 
-#| echo: false 
-#| message: false
-#| label: fig-modelresults
-#| fig-cap: "Proportion of each State Voting for Trump"
-#| warning: false
 
-# get state by state proportions for our polling data
+```{r} 
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-state
+#| fig-cap: Distribution of Sample and Population by Education
+
+# state proportions for survey data
 survey_props <- survey_data %>% 
   group_by(state, consider_trump_binary) %>% 
   summarise(n = n()) %>% 
   mutate(prop = n/sum(n))
 
-# combine the polling data proportions with the post-stratification data
+# combining survey data with the post-stratification data
 combined_trump <- inner_join(survey_props, vote_trump, by = "state")
 combined_trump  <- combined_trump %>% 
   filter(consider_trump_binary == 1)
 
-# arrange our proportions for each state in descending order
-
 stateprops_plot <- combined_trump %>% arrange(desc(trump_predict)) %>% 
   mutate(support = ifelse(trump_predict >= 0.5, "Trump", "Biden"))
 
-# plot the results, with a line on 50% because of the electoral college
-
+# make a plot of the result for state 
 stateprops_plot %>% ggplot(aes(y = reorder(state, trump_predict), x = trump_predict, 
                                color = support)) +
   geom_point(stat = "identity") +
@@ -421,16 +393,17 @@ stateprops_plot %>% ggplot(aes(y = reorder(state, trump_predict), x = trump_pred
   scale_color_manual(values = c("Blue", "Red"))
 ```
 
-Figure \@ref(fig:stateplot) shows us the estimated of proportion of support for Trump and Biden by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Biden (blue) or Trump (red) in each state. Horizontal Lines extending from the dots represent confidence intervals for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 50 percent to slightly higher than 80 percent for Trump in MT (Massachusetts). The dashed green line in the middle at the 50 percent mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest at the top to the lowest at the bottom.
+Figure \@ref(fig:fig-distribution-by-state) shows us the estimated of proportion of support for Trump and Biden by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Biden (blue) or Trump (red) in each state. Horizontal Lines extending from the dots represent confidence intervals for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 50 percent to slightly higher than 80 percent for Trump in MT (Massachusetts). The dashed green line in the middle at the 50 percent mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest at the top to the lowest at the bottom.
 
-From figure \@ref(fig:stateplot), it seems that majority of the states support Biden. Only 7 states out of 51 have its point estimate greater than 50 percent for Trump. However, the horizontal lines of confidence intervals of some states overlapping the green mark give some hope for the Republicans. However, excluding these contesting states, our model suggests that only 3 states are definitely in favor of Trump whereas 
+From figure, it seems that majority of the states support Biden. Only 7 states out of 51 have its point estimate greater than 50 percent for Trump. However, the horizontal lines of confidence intervals of some states overlapping the green mark give some hope for the Republicans. However, excluding these contesting states, our model suggests that only 3 states are definitely in favor of Trump whereas 
 35 states are definitely supporting Biden. 
 
-```{r educationplot} 
-#| echo: false 
-#| message: false 
-#| warning: false 
-#| fig-cap: "How different education levels of voters affect voting for Trump"
+```{r} 
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-educationlevel
+#| fig-cap: How different education levels of voters affect voting for Trump
 
 # Aggregating data by education level
 post_props_education <- post_strat_data %>% 
@@ -477,10 +450,9 @@ vote_trump_education %>% ggplot(aes(y = reorder(education, trump_predict), x = t
 
 ```
 
-Figure \@ref(fig:educationplot) presents the estimated proportion of voters for Trump by education level, divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. Each black dot represents the point estimate of the proportion of voters within the corresponding education category who are predicted to vote for Trump. The horizontal lines extending to the left and right of each dot represent the confidence intervals around the estimate, which reflect the uncertainty. 
+Figure \@ref(fig:fig-distribution-by-educationlevel) presents the estimated proportion of voters for Trump by education level, divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. Each black dot represents the point estimate of the proportion of voters within the corresponding education category who are predicted to vote for Trump. The horizontal lines extending to the left and right of each dot represent the confidence intervals around the estimate, which reflect the uncertainty. 
 
 It shows that regardless of education level, the level of support for Trump lies below 40 percent. The Republican party does not have majority, including the error bars across all education levels. Voters with "High school or less" education appear to have the lowest estimated support for Trump, which does not align with various exit polls and analyses from the 2020 election suggesting that Trump had substantial support among voters without a college degree. Conversely, Voters with 'Some college' and 'Postgrad' education are the two groups that are more in support of Trump, which is exactly the opposite of what we have expected.
-
 
 # Discussion
 
