@@ -19,9 +19,24 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
+library(readr)
 library(palmerpenguins)
-```
+library(ggrepel)
+library(maps)
+library(here)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(statebins)
 
+#### Read in necessary data and model ####
+cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
+cleaned_data_survey <- read_csv(file = here("data/analysis_data/ns20191003_cleaned.csv"), show_col_types = FALSE)
+
+survey_model <- readRDS(file = here("models/consider_trump.rds"))
+predicton_model <- readRDS(file = here("models/census_data_with_predictions.rds"))
+```
 
 # Introduction
 
@@ -29,14 +44,13 @@ You can and should cross-reference sections and sub-sections. We use @citeR and 
 
 The remainder of this paper is structured as follows. @sec-data....
 
-
 # Data {#sec-data}
 
 We have used two datasets for this study. One is the U.S election survey data of Democracy Fund + UCLA Nationscape dataset from the Voter Study Group, conducted on October 3, 2019. Second is the census data from IPUMS America Census Service, which is used as the post-stratification data for the survey data to adjust the weight. 
 
 ## Survey Data
 
-This survey data is an 18-month election study conducted by UCLA researchers with roughly 6250 online interviews each from from July 2019 to February 2021 (@citeSurveyData). The sample is weighted to represent the U.S. adult population (@citeSurveyData). Nationscape groups weight on the following important factors: gender, the four major census regions, race, Hispanic ethnicity, household income, education, age, language spoken at home, nativity, 2016 presidential vote, and the urban-rural mix of the respondent's ZIP code (@citeSurveyData). According to the data, Male make up 48.3% while female make up 51.3% (@citeSurveyData). 74.2% of the respondents are White, 6.8% are Asian/Pacific, 12% are Black (@citeSurveyData). 20.4% are those between 18-29, 33.4% are 30-49, 32.4% are 50-69, 3.3% are 70+ (@citeSurveyData). On average, 5.1 percent declined immediately among those who are selected for the survey. 16.7 percent of the respondents did not complete the survey. Another 5.9 percent were categorized as speeding or straight-line which means they completed the survey in less than 6 minutes or selected the same response for every question in the three policy question batteries. Leaving these out leave 72.4 percent of the original sample for the analysis. 
+This survey data is an 18-month election study conducted by UCLA researchers with roughly 6250 online interviews each from from July 2019 to February 2021 @citeSurveyData. The sample is weighted to represent the U.S. adult population @citeSurveyData. Nationscape groups weight on the following important factors: gender, the four major census regions, race, Hispanic ethnicity, household income, education, age, language spoken at home, nativity, 2016 presidential vote, and the urban-rural mix of the respondent's ZIP code @citeSurveyData. According to the data, Male make up 48.3% while female make up 51.3% @citeSurveyData. 74.2% of the respondents are White, 6.8% are Asian/Pacific, 12% are Black @citeSurveyData. 20.4% are those between 18-29, 33.4% are 30-49, 32.4% are 50-69, 3.3% are 70+ @citeSurveyData. On average, 5.1 percent declined immediately among those who are selected for the survey. 16.7 percent of the respondents did not complete the survey. Another 5.9 percent were categorized as speeding or straight-line which means they completed the survey in less than 6 minutes or selected the same response for every question in the three policy question batteries. Leaving these out leave 72.4 percent of the original sample for the analysis. 
 
 The Nationscape survey's strength lies in its methodological rigor - the effectiveness in collecting large samples from the U.S. citizen and its weighting strategy desinged to mirror the U.S. adult population by including weight factors such as age, gender, race and income and more. As they filter out inaccurate or missing data, it makes sure that the data collected are accurate and ensures data integrity. While other datasets such as the General Social Survey (GSS) and the American National Election Studies (ANES) are available, the Nationscape dataset's frequency (surveys collected every week) give it an advantage in analyzing electoral trends and shifts in real-time. Its' extensive sample size also justifies the choice of this dataset.  
 
@@ -44,44 +58,65 @@ For our analysis, we decided to focus on five demographics: age, gender, educati
 
 Gender is also an important category because in general, men tend be more conservative and women tend to be more liberal. Recently, gender issues are growing social issues and this may affect the election, hence we wanted to explore how this affects our model. 
 
-Education is also an interesting factor. In the past, non-college white voters used to support Democrats while college-educated white voters supported Republicans {@Harris}. However, there has been a switch in this trend as 61 percent of non-college white voters showed their support wheres just 45 percent of college-educated white voters did in the exit polls {@Harris}. Only 37 percent of those without a degree cast their votes for Democrats while 53 percent with a degree did so {@Harris}. We categorized education into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. 
+Education is also an interesting factor. In the past, non-college white voters used to support Democrats while college-educated white voters supported Republicans @Harris. However, there has been a switch in this trend as 61 percent of non-college white voters showed their support wheres just 45 percent of college-educated white voters did in the exit polls @Harris. Only 37 percent of those without a degree cast their votes for Democrats while 53 percent with a degree did so @Harris. We categorized education into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. 
 
-Race also needs some attention because normally non-white groups are highly in favour of Democrats regardless of candidates and white swing by depending on candidates. According to the statistics collected in 2016, 93% of black, 71% of Latino, 68% of Asian support democrats while only 41% of white support democrats {@Prokop}. As white voters make up 74% of the voting population, it is really important for both parties to attain this demographic group. 
+Race also needs some attention because normally non-white groups are highly in favour of Democrats regardless of candidates and white swing by depending on candidates. According to the statistics collected in 2016, 93% of black, 71% of Latino, 68% of Asian support democrats while only 41% of white support democrats @Prokop. As white voters make up 74% of the voting population, it is really important for both parties to attain this demographic group. 
 
 Lastly, states are very important as some states historically favor conservatives while some states vote for democrats. In general, the west and the east coasts are democrat supporters whereas south are conservative supporters.
 
-
-```{r}
-
-```
-
-Talk more about it.
-
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
-
 ## Post-stratification Data 
 
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+IPUMS ("Integrated Public Use Microdata Series") is a website that offers database of samples of the American population from the American Community Surveys of 2000-present. These samples provide rich qualitative information on the long-term changes in the population. We selected the '' data as the post-stratification dataset for our research. The ACS is an ongoing survey that collects data monthly, which is then combined into 1-year, 3-year, and 5-year aggregates. It then uses stratified sampling where the U.S population is broken down into sub-groups and initial weights are assigned to each respondent. 
 
-```{r}
+One strength of the IPUMS survey is the fact that it provides a comprehensive and extensive data with detailed demographic of the U.S. population with social, economic and housing characteristics, which is very useful in our analysis of the 2020 U.S presidential election forecast. The longitudinal data of this survey also allows researchers to analyze trends over time. The U.S. Census Bureau offers credibility of the data with high quality checks. The post-stratification process ensures correcting for sampling biases and non-response. On the other hand, since the survey relies on self-report, there lies a risk of response bias inherently. While it is an ongoing survey, there is still a time lag between the data collection and data availability. However, the large sample size, consistency and reliability of the data collection, the integrated data over time with post-stratification can justify the decision to utilize IPUMS data over other sources. 
 
-```
+The variables we have decided to use in this analysis from the dataset are 'sex', 'race', 'stateicp', 'age_group', and 'educd'. We have filtered out the respondents who have answered 'other' or no available sex data from the raw dataset for simplicity of the analysis. Therefore, 'Sex' is categorized into 'Male' and 'Female'. 'Race' is divided into 'White', 'Black', 'Asian', 'American Indian' and 'Other'. As mentioned earlier, the fact that white, black and Asian together make up around 93 percent of the U.S population, this categorization is justified. 'stateicp' is a record of all the states in the U.S. We have used the abbreviations for each state, for example, 'CT' for Connecticut, 'ME' for Maine, 'MA' for Massachusetts. We have the data of 55 states in total. 'age_group' categorized the respondents' age into four groups: '18-29', '30-49', '50-64' and '65+'. 'education' is divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. We filtered out those unknowns, and cleaned the dataset by assigning each respondent to the right category accordingly. 
 
-Talk more about it.
 
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
-
-```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
+```{r fig.width=10, fig.height=5}
 #| echo: false
-#| warning: false
 #| message: false
+#| warning: false
+#| label: fig-distribution-by-age-group
+#| fig-cap: Distribution of Sample and Population by Age Group
 
+# Read in the survey data
+survey_data <- cleaned_data_survey
 
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+# Count the number of occurrences in each age group and calculate percentages for the survey data
+survey_counts <- survey_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Count the number of occurrences in each age group and calculate percentages for the post-strat data
+post_strat_counts <- post_strat_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = (count / sum(count)) * 100)  # Calculate percentage
+
+# Combine the percentages into a single data frame for plotting
+combined_percentages <- rbind(
+  data.frame(dataset = 'Survey', age_group = survey_counts$age_group, percentage = survey_counts$percentage),
+  data.frame(dataset = 'Post-Strat', age_group = post_strat_counts$age_group, percentage = post_strat_counts$percentage)
+)
+
+# Plot the percentages with specified bar width and percentage on y-axis, and label each bar
+ggplot(combined_percentages, aes(x = age_group, y = percentage, fill = dataset)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)),
+            position = position_dodge(width = 0.8), 
+            vjust = -0.3, # Adjust text position
+            color = "black",
+            size = 3) + 
+  labs(x = "Age Group", y = "Proportion", title = "Distribution of Sample and Population by Age Group") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green"))
 ```
 
-Talk way more about it. 
 
 # Model
 

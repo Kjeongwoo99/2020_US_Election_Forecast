@@ -1,8 +1,8 @@
 #### Preamble ####
-# Purpose: Cleans the raw plane data recorded by two observers..... [...UPDATE THIS...]
+# Purpose: Cleans the raw post-strat data
 # Author: Jeongwoo Kim, Jiwon Choi
 # Date: 9 March 2024
-# Contact: jwon.choi@mail.utoronto.ca
+# Contact: jwoo.kim@mail.utoronto.ca, jwon.choi@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: 01-download_data.R
 
@@ -44,8 +44,8 @@ cleaned_data <- raw_data %>%
          age_group = case_when(
            age >= 18 & age <= 29 ~ "18-29",
            age >= 30 & age <= 49 ~ "30-49",
-           age >= 50 & age <= 64 ~ "50-64",
-           age >= 65 ~ "65+",
+           age >= 50 & age <= 64 ~ "50-69",
+           age >= 70 ~ "70+",
            TRUE ~ "Unknown"
          ),
          race = case_when(
@@ -53,20 +53,20 @@ cleaned_data <- raw_data %>%
            race == 2 ~ "Black",
            race == 3 ~ "American Indian",
            race %in% c(4, 5, 6) ~ "Asian",
-           race %in% c(7, 8, 9) ~ "Others",
+           race %in% c(3, 7, 8, 9) ~ "Other",
            TRUE ~ "Unknown"
          ),
          education = case_when(
-           educd %in% c(0:60, 62, 63) ~ "High School or Less",
-           educd %in% c(64, 65:71, 73:81) ~ "Some College",
-           educd == 72 ~ "College Degree",
-           educd >= 82 ~ "Postgrad",
+           educd %in% c(0:60, 62, 63) ~ "High school or less",
+           educd %in% c(64, 65:71, 73:80) ~ "Some college",
+           educd %in% c(81, 82:113) ~ "College degree",
+           educd >= 114 ~ "Postgrad",
            TRUE ~ "Unknown"
          )) %>%
+  rename(state = stateicp, gender = sex, ) %>%
   select(-age, -educd) %>% # Remove the original 'age' and 'educd' columns to keep only the age group and education group
   # Filter step to remove rows with "Unknown" in any of the transformed columns
-  filter(!if_any(c(sex, age_group, race, education), ~ .x == "Unknown"))
+  filter(!if_any(c(gender, age_group, race, education), ~ .x == "Unknown"))
 
 #### Save data ####
 write_csv(cleaned_data, "data/analysis_data/usa_00002_cleaned.csv")
-
