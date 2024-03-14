@@ -33,9 +33,6 @@ library(statebins)
 #### Read in necessary data and model ####
 cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
 cleaned_data_survey <- read_csv(file = here("data/analysis_data/ns20191003_cleaned.csv"), show_col_types = FALSE)
-
-survey_model <- readRDS(file = here("models/consider_trump.rds"))
-predicton_model <- readRDS(file = here("models/census_data_with_predictions.rds"))
 ```
 
 # Introduction
