@@ -299,43 +299,29 @@ kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %
 # Model
 For our study, we employ a technique called multilevel regression with post-stratification (MRP). This approach involves creating a model based on a smaller data set, such as our survey data, and then extending the model's findings to a larger population.
 
-The key steps in MRP involve initially selecting a dataset for model development. In this case, we utilized survey data from the Voter Study Group (@citeSurveyData). The next step is to construct a model with this smaller dataset; here, we employed logistic regression based on the survey data, formulated as seen in equation \ref{eq:logit}. Following model creation, it is then applied to a broader dataset to estimate population characteristics. For our analysis, Census data from IPUMS (@citeIPUMS) served as this larger dataset.
-
-To predict an individual's likelihood of voting for Donald Trump, we aim to construct a logistic regression model leveraging data from the Voter Study Group (@citeSurveyData) and applying post-stratification with Census Data (@citeIPUMS). Given that logistic regression is suited for binary outcomes, we've introduced a variable, 'consider_trump', which assigns a 1 if the respondent indicates a plan to vote for Donald Trump, and a 0 for intentions to vote for other candidates, with 0 encompassing both "No" and "Other" responses.
-
-The logistic regression model takes the form of:
-
-\begin{equation}
-log(\frac{\hat{p}}{1 - \hat{p}}) = \beta_{0} + \beta_{1}x_{sex} +
-\beta_{2}x_{agegroup} + \beta_{3}x_{race} + \beta_{4}x_{state} + \beta_{5}x_{education}
-\label{eq:logit}
-\end{equation}
-
-After developing our logistic regression model, we'll utilize the `predict` function in R (@citeR) to apply it to the Census data (@citeIPUMS). This involves segmenting the Census dataset by our target demographic categories—sex, race, age_group, education level, and state—and then executing the model for each group. This process yields probabilities that an individual within a specific group is likely to vote for Donald Trump. With these predictions in hand, we can assess potential outcomes, such as the winner of the popular vote or the distribution of electoral college votes. Additionally, we'll employ a 95 percent confidence interval to estimate the popular vote percentage, indicating a 95 percent certainty level that the true population value falls within our calculated range. This method suggests our findings will have an accuracy margin of +/- 4%.
-
-In the equation \ref{eq:logit}, each $\beta$ is identified as a coefficient to be determined by the regression analysis. The chosen variables for this study include sex, age, race, education, and state, selected primarily because the first three have been recognized as consistent indicators of an individual's preferred candidate. This rationale stems from observed patterns, such as certain states consistently voting for the Republican party, whereas others oscillate between Democratic and Republican preferences in successive elections. Furthermore, we opted for education level over income as a variable, believing that education offers a more definitive characterization of an individual, unlike income.
 
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
-#| label: tbl-model-coefficients
-#| tbl-cap: Coefficients from the Model
-
 model <- survey_model
+
+# Assuming 'model' is your model object from rstanarm
+library(broom.mixed)
 
 coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
 
-kable(coefficients, format = "latex", booktabs = TRUE, align = "c") %>%
-  kable_styling(latex_options = "scale_down", font_size = 7)
+# Assuming you have knitr and kableExtra already installed and loaded
+library(knitr)
+library(kableExtra)
+
+knitr::kable(coefficients,
+             caption = "Coefficients from the Model",
+             digits = 2) %>%
+  kableExtra::kable_styling(latex_options = "scale_down")
 
 ```
 
-We are running our regression model using the stan_glm() function in R (@citeR). The decision to run this model over other models like linear regression was made by the fact that we were predicting a binary variable about a voter's decision. Since there are only two possible options our data will likely follow an S shape and a straight line equation will not be helpful to model this relationship. Another strength present for logistic regression is that when combined with post-stratification it allows us to take information from under-represented populations and it allows their views to be accounted for more greatly. For example, our survey data (@citeSurveyData), includes only 7 observations from Alaska, but using multilevel regression with post-stratification, we can have that expanded to over 4500 people.
-
-Our model does have some weaknesses, since the output must be binary, we cannot account for other candidates or a person deciding not to vote. This issue isn't too large because our main goal is to determine which of the two main candidates will be chosen by the people of America. Another weakness we do encounter with our model and multi-level regression with post-stratification is that it has a strong dependence on the survey data. This is a weakness because if the survey has any gaps or there are any tweaks we need to make, it can change the course of results.
-
-@tbl-model-coefficients shows the estimates for the coefficients that will fit into our logistic regression equation. These coefficients will fit into Equation @logit, and were calculated using data from the Voter Study Group (@citeSurveyData). The table is made using `kable` from `knitr` (@citeKnitr) and is formatted using `kableExtra` (@citekableExtra)^[data was cleaned using the `tidy` function called `broom` (@citebroom)]. We can see that our p-values for variables like gender, age, hispanic and education return very significant results while the states have varying levels of significance. What our p-values tell us is whether or not our variable is statistically significant in impacting our response variable, in this case, whether the respondent will vote for Biden or not. When we look at our p-values, we want them to be as small as possible and can assume they're significant if it's under 0.05. As for the coefficients, the value we receive is in terms of log odds. When the log odds are positive, it means that the person will likely vote for Biden and if it's negative it means they'll likely vote for Trump.
 
 ```{r}
 #| echo: false
@@ -356,39 +342,157 @@ coefficients %>% ggplot(aes(estimate, term)) +
        x = "Estimate", y = "Coefficient") +
   theme(axis.text.y = element_text(size = 5))
 ```
-
-@fig-coefficient-estimates shows us the coefficients that would fit into equation \ref{eq:logit} using the polling data (@citeSurveyData). We also have error bars present, which show the upper and lower estimates for the coefficients. What we have to look out for in this scenario is that coefficients with negative values would mean that the person is more likely to vote for Donald Trump (with that characteristic) and positive values mean the person is more likely to vote for Joe Biden. @tbl-model-coefficients shows a numerical view of @fig-coefficient-estimates, along with p-values. 
-
-Using the outputs of the logistic regression model, we can get an equation that follows the form of \ref{eq:logit}, but with the $\beta$ values filled out. This equation is difficult to write out because of the many variables, but in short, if the person's characteristic fits in with a certain variable, it is used in the equation. Then the equation is summed up and the probability is found using equation \@ref{eq:prob}.
-
-We can also look at some common assumptions for logistic regression and check if our model follows them or not. One assumption is that the data set used is large. The data we used to create the model had about 5000 observations, which is high but maybe in the future, we could use a larger data set to increase the accuracy of predictions. Another assumption that logistic regression makes is that the observations are independent of each other. We know that the observations used for our model were independent, not only because the Voter Study Group ensures that there aren't duplicates but because they assign each respondent a unique ID number.
-
-Lastly, using our coefficients (see @tbl-model-coefficients), we can calculate the upper and lower bounds for the probabilities predicted from our model. For our lower probability (white male, from North Dakota, aged 36-49, with some post-secondary education and not hispanic) we get a probability of 22% for supporting Biden. For our upper probability (black woman, from Vermont, aged 18-35, with post-secondary or higher education and considers themselves hispanic) we get a probability of 99% for supporting Joe Biden.
+We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
 
 # Results
 
-Our results are summarized in @tbl-modelresults.
-
 ```{r}
 #| echo: false
-#| eval: true
-#| warning: false
 #| message: false
+#| warning: false
 
 library(rstanarm)
 
+survey_data$consider_trump_binary <- ifelse(survey_data$consider_trump == "Yes", 1, 0)
+survey_model_now <- glm(consider_trump_binary ~ gender + education + age_group + race + state,data = survey_data,family = binomial(link = "logit"))
+  
+# group by each demographic
+post_props <- post_strat_data %>% 
+  group_by(state, race, age_group, gender, education) %>% 
+  summarise(n = n(), .groups ='drop') %>% 
+  group_by(state) %>% 
+  mutate(prop = n/sum(n))
+
+# estimate of the model 
+post_props$estimate <- predict.glm(survey_model_now, newdata = post_props,
+                          type = "response")
+
+# new column with the number of voters for Trump
+post_props <- post_props %>% mutate(num_voters = n*estimate)
+
+# error terms 
+errors <- predict.glm(survey_model_now, newdata = post_props,
+                      type = "response", se.fit = T)
+lower <- errors$fit - errors$se.fit
+upper <- errors$fit + errors$se.fit
+
+# combine errors with proportions
+post_props_error <- cbind(post_props, lower, upper)
+post_props_error <- post_props_error %>% 
+  rename("lower" = ...10,
+         "upper" = ...11)
+
+# new column of voters for trump 
+post_props_error <- post_props_error %>% mutate(num_voters_lower = n*lower,
+                                num_voters_upper = n*upper)
+
+# confidence intervals for errors 
+vote_trump <- post_props_error %>% mutate(trump_prop=estimate*prop,
+                                       trump_prop_lower = lower*prop,
+                                       trump_prop_upper = upper*prop) %>%
+  group_by(state) %>%
+  summarise(trump_predict = sum(trump_prop),
+            trump_prop_lower = sum(trump_prop_lower),
+            trump_prop_upper = sum(trump_prop_upper))
 
 ```
 
-```{r}
+
+```{r} 
 #| echo: false
-#| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| message: false
 #| warning: false
+#| label: fig-distribution-by-state
+#| fig-cap: Distribution of Sample and Population by Education
 
+# state proportions for survey data
+survey_props <- survey_data %>% 
+  group_by(state, consider_trump_binary) %>% 
+  summarise(n = n()) %>% 
+  mutate(prop = n/sum(n))
+
+# combining survey data with the post-stratification data
+combined_trump <- inner_join(survey_props, vote_trump, by = "state")
+combined_trump  <- combined_trump %>% 
+  filter(consider_trump_binary == 1)
+
+stateprops_plot <- combined_trump %>% arrange(desc(trump_predict)) %>% 
+  mutate(support = ifelse(trump_predict >= 0.5, "Trump", "Biden"))
+
+# make a plot of the result for state 
+stateprops_plot %>% ggplot(aes(y = reorder(state, trump_predict), x = trump_predict, 
+                               color = support)) +
+  geom_point(stat = "identity") +
+  geom_errorbar(aes(xmin = trump_prop_lower, xmax = trump_prop_upper)) +
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "green") +
+  labs(title = "Estimated Proportion of State Voting for Joe Biden",
+       x = "Percentage", y= "State",
+       color = "Support") +
+  scale_x_continuous(labels = scales::percent) +
+  theme(axis.text.y = element_text(size = 5)) +
+  scale_color_manual(values = c("Blue", "Red"))
+```
+
+Figure \@ref(fig:fig-distribution-by-state) shows us the estimated of proportion of support for Trump and Biden by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Biden (blue) or Trump (red) in each state. Horizontal Lines extending from the dots represent confidence intervals for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 50 percent to slightly higher than 80 percent for Trump in MT (Massachusetts). The dashed green line in the middle at the 50 percent mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest at the top to the lowest at the bottom.
+
+From figure, it seems that majority of the states support Biden. Only 7 states out of 51 have its point estimate greater than 50 percent for Trump. However, the horizontal lines of confidence intervals of some states overlapping the green mark give some hope for the Republicans. However, excluding these contesting states, our model suggests that only 3 states are definitely in favor of Trump whereas 
+35 states are definitely supporting Biden. 
+
+```{r} 
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-distribution-by-educationlevel
+#| fig-cap: How different education levels of voters affect voting for Trump
+
+# Aggregating data by education level
+post_props_education <- post_strat_data %>% 
+  group_by(education, race, age_group, gender, state) %>%  # Adjust based on variables of interest
+  summarise(n = n(), .groups ='drop') %>%
+  group_by(education) %>%
+  mutate(prop = n/sum(n))
+
+# Generate predictions for each grouped cell based on education
+post_props_education$estimate <- predict.glm(survey_model_now, newdata = post_props_education, type = "response")
+
+# Calculate the number of voters from each cell voting for Trump
+post_props_education <- post_props_education %>% mutate(num_voters = n * estimate)
+
+# Get errors for the prediction
+errors_education <- predict.glm(survey_model_now, newdata = post_props_education,
+                                type = "response", se.fit = TRUE)
+lower_education <- errors_education$fit - errors_education$se.fit
+upper_education <- errors_education$fit + errors_education$se.fit
+
+# Combine the proportions and the errors generated
+post_props_education_error <- cbind(post_props_education, lower_education, upper_education) %>% rename(lower = ...10, upper = ...11)
+
+# Aggregate predictions by education level
+vote_trump_education <- post_props_education_error %>%
+  mutate(trump_prop = estimate * prop,
+         trump_prop_lower = lower * prop,
+         trump_prop_upper = upper * prop) %>%
+  group_by(education) %>%
+  summarise(trump_predict = sum(trump_prop),
+            trump_prop_lower = sum(trump_prop_lower),
+            trump_prop_upper = sum(trump_prop_upper))
+
+vote_trump_education %>% ggplot(aes(y = reorder(education, trump_predict), x = trump_predict)) +
+  geom_point(stat = "identity") +
+  geom_errorbar(aes(xmin = trump_prop_lower, xmax = trump_prop_upper)) +
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "green") +
+  labs(title = "Estimated Proportion of Voters for Trump by Education Level",
+       x = "Percentage", y= "Education",
+       color = "Support") +
+  scale_x_continuous(labels = scales::percent) +
+  theme(axis.text.y = element_text(size = 5)) +
+  scale_color_manual(values = c("Blue", "Red"))
 
 ```
+
+Figure \@ref(fig:fig-distribution-by-educationlevel) presents the estimated proportion of voters for Trump by education level, divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. Each black dot represents the point estimate of the proportion of voters within the corresponding education category who are predicted to vote for Trump. The horizontal lines extending to the left and right of each dot represent the confidence intervals around the estimate, which reflect the uncertainty. 
+
+It shows that regardless of education level, the level of support for Trump lies below 40 percent. The Republican party does not have majority, including the error bars across all education levels. Voters with "High school or less" education appear to have the lowest estimated support for Trump, which does not align with various exit polls and analyses from the 2020 election suggesting that Trump had substantial support among voters without a college degree. Conversely, Voters with 'Some college' and 'Postgrad' education are the two groups that are more in support of Trump, which is exactly the opposite of what we have expected.
 
 # Discussion
 
