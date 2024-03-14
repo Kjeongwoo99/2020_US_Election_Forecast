@@ -7,7 +7,7 @@ author:
 thanks: "Code and data are available at: https://github.com/Kjeongwoo99/STA302H_Paper3"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "In this study, we forecasted the 2020 U.S. Presidential Election outcomes using a sophisticated statistical technique called multilevel regression with post-stratification (MRP), applied to a large-scale national survey dataset and census data. Our findings reveal how demographic factors such as age, gender, education, race, and geographic location influence voting behavior, with particular emphasis on voter preferences for Donald Trump. The analysis highlights significant variations in voter support across different states and educational backgrounds, underscoring the complex interplay of demographics in shaping electoral outcomes. This research contributes to our understanding of the American electoral landscape, demonstrating the critical role of demographic diversity in determining the direction of political preferences and election results."
 format: pdf
 number-sections: true
 bibliography: references.bib
