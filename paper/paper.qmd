@@ -19,16 +19,14 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
-library(readr)
 library(palmerpenguins)
 library(ggrepel)
 library(maps)
 library(here)
-library(ggplot2)
-library(dplyr)
-library(knitr)
 library(kableExtra)
 library(statebins)
+library(broom.mixed)
+library(knitr)
 
 #### Read in necessary data and model ####
 cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
@@ -65,11 +63,23 @@ Lastly, states are very important as some states historically favor conservative
 
 ## Post-stratification Data
 
-IPUMS ("Integrated Public Use Microdata Series") is a website that offers database of samples of the American population from the American Community Surveys of 2000-present. These samples provide rich qualitative information on the long-term changes in the population. We selected the '' data as the post-stratification dataset for our research. The ACS is an ongoing survey that collects data monthly, which is then combined into 1-year, 3-year, and 5-year aggregates. It then uses stratified sampling where the U.S population is broken down into sub-groups and initial weights are assigned to each respondent. 
+IPUMS ("Integrated Public Use Microdata Series") is a website that offers database of samples of the American population from the American Community Surveys of 2000-present. These samples provide rich qualitative information on the long-term changes in the population. We selected the '2019 ACS' data (@citeIPUMS) as the post-stratification dataset for our research. The ACS is an ongoing survey that collects data monthly, which is then combined into 1-year, 3-year, and 5-year aggregates. It then uses stratified sampling where the U.S population is broken down into sub-groups and initial weights are assigned to each respondent. 
 
-One strength of the IPUMS survey is the fact that it provides a comprehensive and extensive data with detailed demographic of the U.S. population with social, economic and housing characteristics, which is very useful in our analysis of the 2020 U.S presidential election forecast. The longitudinal data of this survey also allows researchers to analyze trends over time. The U.S. Census Bureau offers credibility of the data with high quality checks. The post-stratification process ensures correcting for sampling biases and non-response. On the other hand, since the survey relies on self-report, there lies a risk of response bias inherently. While it is an ongoing survey, there is still a time lag between the data collection and data availability. However, the large sample size, consistency and reliability of the data collection, the integrated data over time with post-stratification can justify the decision to utilize IPUMS data over other sources. 
+One strength of the IPUMS survey is the fact that it provides a data with detailed demographic of the U.S. population with social, economic and housing characteristics, which is very useful in our analysis of the 2020 U.S presidential election forecast. The longitudinal data of this survey also allows researchers to analyze trends over time. The U.S. Census Bureau offers credibility of the data with high quality checks. The post-stratification process ensures correcting for sampling biases and non-response. On the other hand, since the survey relies on self-report, there lies a risk of response bias inherently. While it is an ongoing survey, there is still a time lag between the data collection and data availability. However, the large sample size, consistency and reliability of the data collection, the integrated data over time with post-stratification can justify the decision to utilize IPUMS data over other sources. 
 
-The variables we have decided to use in this analysis from the dataset are 'sex', 'race', 'stateicp', 'age_group', and 'educd'. We have filtered out the respondents who have answered 'other' or no available sex data from the raw dataset for simplicity of the analysis. Therefore, 'Sex' is categorized into 'Male' and 'Female'. 'Race' is divided into 'White', 'Black', 'Asian', 'American Indian' and 'Other'. As mentioned earlier, the fact that white, black and Asian together make up around 93 percent of the U.S population, this categorization is justified. 'stateicp' is a record of all the states in the U.S. We have used the abbreviations for each state, for example, 'CT' for Connecticut, 'ME' for Maine, 'MA' for Massachusetts. We have the data of 55 states in total. 'age_group' categorized the respondents' age into four groups: '18-29', '30-49', '50-64' and '65+'. 'education' is divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. We filtered out those unknowns, and cleaned the dataset by assigning each respondent to the right category accordingly. 
+In processing the raw post-stratification dataset, which initially contained approximately 3.2 million records, we refined it down to about 2.3 million records. This was achieved through a meticulous selection process, ensuring the data's integrity and relevance for our analysis. In our analysis, we've selected the variables 'sex', 'race', 'stateicp', 'age', and 'educd' from the dataset. To simplify our analysis, respondents who indicated 'other' or provided no data for their sex have been excluded. Consequently, 'sex' has been categorized strictly as 'Male' and 'Female'. We've refined 'race' into five categories: 'White', 'Black', 'Asian', 'American Indian', and 'Other', based on the composition of the U.S. population, with White, Black, and Asian categories accounting for approximately 93 percent of the total.
+
+The 'stateicp' variable encompasses all U.S. states, using their standard abbreviations (e.g., 'CT' for Connecticut), and extends to 55 values to include 'Puerto Rico', 'State groupings (1980 Urban/rural sample)', 'Military/Military Reservations', 'District of Columbia', and an 'State not identified' category.
+
+Age has been grouped into four categories: '18-29', '30-49', '50-64', and '70+'. For educational attainment ('educd'), we've created four categories: 'High school or less', 'Some college', 'College degree', and 'Postgrad'.
+ 
+We excluded any unknown responses to ensure clarity and accuracy in categorization and to enhance clarity and align with survey data, we've renamed 'sex', 'stateicp', 'age', and 'educd' to 'gender', 'state', 'age_group', and 'education', respectively. This restructuring aims to streamline our analysis by ensuring each respondent is accurately categorized.
+
+@fig-distribution-by-age-group, @fig-distribution-by-gender, @fig-distribution-by-race, and @fig-distribution-by-education illustrate comparisons between survey data and post-stratification data across different variables. In these visuals, orange bars represent post-stratification data, while green bars signify survey data. The percentages displayed on each figure are rounded to the nearest tenth, introducing a potential margin of error of ±0.1% in the total values. Generally, the survey data aligns closely with the post-stratification data, maintaining a discrepancy of about 10% across most categories. Notable exceptions are observed in the '30-49' age group and the 'Some college' education level, where the differences exceed this margin.
+
+```{r}
+# insert figure for state here
+```
 
 ```{r fig.width=10, fig.height=5}
 #| echo: false
@@ -241,6 +251,8 @@ ggplot(combined_education_percentages, aes(x = education, y = percentage, fill =
   scale_fill_manual(values = c("orange", "green"))
 ```
 
+@tbl-voters-intention-to-vote-for-trump shows the proportion of voters who intend to vote for Donald Trump or not. Also, @tbl-voters-intention-of-their-primary-party shows the proportion of voters' supporting party. The data used to create these table is from the @citeSurveyData. We see that Donald Trump and his party Republican are not expected to win the popular vote before we implement the model.
+
 ```{r}
 #| echo: false
 #| message: false
@@ -268,6 +280,7 @@ kable(trump_counts, format = "latex", booktabs = TRUE, align = "c") %>%
 #| warning: false
 #| label: tbl-voters-intention-of-their-primary-party
 #| tbl-cap: Voters Intention of Their Primary Party
+
 data <- cleaned_data_survey
 
 # Prepare the data with specified order
@@ -284,48 +297,73 @@ kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %
 ```
 
 # Model
-
 For our study, we employ a technique called multilevel regression with post-stratification (MRP). This approach involves creating a model based on a smaller data set, such as our survey data, and then extending the model's findings to a larger population.
 
+The key steps in MRP involve initially selecting a dataset for model development. In this case, we utilized survey data from the Voter Study Group (@citeSurveyData). The next step is to construct a model with this smaller dataset; here, we employed logistic regression based on the survey data, formulated as seen in equation \ref{eq:logit}. Following model creation, it is then applied to a broader dataset to estimate population characteristics. For our analysis, Census data from IPUMS (@citeIPUMS) served as this larger dataset.
+
+To predict an individual's likelihood of voting for Donald Trump, we aim to construct a logistic regression model leveraging data from the Voter Study Group (@citeSurveyData) and applying post-stratification with Census Data (@citeIPUMS). Given that logistic regression is suited for binary outcomes, we've introduced a variable, 'consider_trump', which assigns a 1 if the respondent indicates a plan to vote for Donald Trump, and a 0 for intentions to vote for other candidates, with 0 encompassing both "No" and "Other" responses.
+
+The logistic regression model takes the form of:
+
+\begin{equation}
+log(\frac{\hat{p}}{1 - \hat{p}}) = \beta_{0} + \beta_{1}x_{sex} +
+\beta_{2}x_{agegroup} + \beta_{3}x_{race} + \beta_{4}x_{state} + \beta_{5}x_{education}
+\label{eq:logit}
+\end{equation}
+
+After developing our logistic regression model, we'll utilize the `predict` function in R (@citeR) to apply it to the Census data (@citeIPUMS). This involves segmenting the Census dataset by our target demographic categories—sex, race, age_group, education level, and state—and then executing the model for each group. This process yields probabilities that an individual within a specific group is likely to vote for Donald Trump. With these predictions in hand, we can assess potential outcomes, such as the winner of the popular vote or the distribution of electoral college votes. Additionally, we'll employ a 95 percent confidence interval to estimate the popular vote percentage, indicating a 95 percent certainty level that the true population value falls within our calculated range. This method suggests our findings will have an accuracy margin of +/- 4%.
+
+In the equation \ref{eq:logit}, each $\beta$ is identified as a coefficient to be determined by the regression analysis. The chosen variables for this study include sex, age, race, education, and state, selected primarily because the first three have been recognized as consistent indicators of an individual's preferred candidate. This rationale stems from observed patterns, such as certain states consistently voting for the Republican party, whereas others oscillate between Democratic and Republican preferences in successive elections. Furthermore, we opted for education level over income as a variable, believing that education offers a more definitive characterization of an individual, unlike income.
 
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
-model <- survey_model
+#| label: tbl-model-coefficients
+#| tbl-cap: Coefficients from the Model
 
-# Assuming 'model' is your model object from rstanarm
-library(broom.mixed)
+model <- survey_model
 
 coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
 
-# Assuming you have knitr and kableExtra already installed and loaded
-library(knitr)
-library(kableExtra)
-
-knitr::kable(coefficients,
-             caption = "Coefficients from the Model",
-             digits = 2) %>%
-  kableExtra::kable_styling(latex_options = "scale_down")
+kable(coefficients, format = "latex", booktabs = TRUE, align = "c") %>%
+  kable_styling(latex_options = "scale_down", font_size = 7)
 
 ```
 
+We are running our regression model using the stan_glm() function in R (@citeR). The decision to run this model over other models like linear regression was made by the fact that we were predicting a binary variable about a voter's decision. Since there are only two possible options our data will likely follow an S shape and a straight line equation will not be helpful to model this relationship. Another strength present for logistic regression is that when combined with post-stratification it allows us to take information from under-represented populations and it allows their views to be accounted for more greatly. For example, our survey data (@citeSurveyData), includes only 7 observations from Alaska, but using multilevel regression with post-stratification, we can have that expanded to over 4500 people.
 
-## Model set-up
+Our model does have some weaknesses, since the output must be binary, we cannot account for other candidates or a person deciding not to vote. This issue isn't too large because our main goal is to determine which of the two main candidates will be chosen by the people of America. Another weakness we do encounter with our model and multi-level regression with post-stratification is that it has a strong dependence on the survey data. This is a weakness because if the survey has any gaps or there are any tweaks we need to make, it can change the course of results.
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
+@tbl-model-coefficients shows the estimates for the coefficients that will fit into our logistic regression equation. These coefficients will fit into Equation @logit, and were calculated using data from the Voter Study Group (@citeSurveyData). The table is made using `kable` from `knitr` (@citeKnitr) and is formatted using `kableExtra` (@citekableExtra)^[data was cleaned using the `tidy` function called `broom` (@citebroom)]. We can see that our p-values for variables like gender, age, hispanic and education return very significant results while the states have varying levels of significance. What our p-values tell us is whether or not our variable is statistically significant in impacting our response variable, in this case, whether the respondent will vote for Biden or not. When we look at our p-values, we want them to be as small as possible and can assume they're significant if it's under 0.05. As for the coefficients, the value we receive is in terms of log odds. When the log odds are positive, it means that the person will likely vote for Biden and if it's negative it means they'll likely vote for Trump.
 
-```{=tex}
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-coefficient-estimates
+#| fig-cap: Coefficient Estimates
+
+model <- survey_model
+
+coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
+# plot our coefficients with error bars to show the upper and lower
+# estimates for the coefficients
+coefficients %>% ggplot(aes(estimate, term)) +
+  geom_point() +
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high)) +
+  labs(title = "Coefficient Estimates",
+       x = "Estimate", y = "Coefficient") +
+  theme(axis.text.y = element_text(size = 5))
 ```
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
+
+@fig-coefficient-estimates shows us the coefficients that would fit into equation \ref{eq:logit} using the polling data (@citeSurveyData). We also have error bars present, which show the upper and lower estimates for the coefficients. What we have to look out for in this scenario is that coefficients with negative values would mean that the person is more likely to vote for Donald Trump (with that characteristic) and positive values mean the person is more likely to vote for Joe Biden. @tbl-model-coefficients shows a numerical view of @fig-coefficient-estimates, along with p-values. 
+
+Using the outputs of the logistic regression model, we can get an equation that follows the form of \ref{eq:logit}, but with the $\beta$ values filled out. This equation is difficult to write out because of the many variables, but in short, if the person's characteristic fits in with a certain variable, it is used in the equation. Then the equation is summed up and the probability is found using equation \@ref{eq:prob}.
+
+We can also look at some common assumptions for logistic regression and check if our model follows them or not. One assumption is that the data set used is large. The data we used to create the model had about 5000 observations, which is high but maybe in the future, we could use a larger data set to increase the accuracy of predictions. Another assumption that logistic regression makes is that the observations are independent of each other. We know that the observations used for our model were independent, not only because the Voter Study Group ensures that there aren't duplicates but because they assign each respondent a unique ID number.
+
+Lastly, using our coefficients (see @tbl-model-coefficients), we can calculate the upper and lower bounds for the probabilities predicted from our model. For our lower probability (white male, from North Dakota, aged 36-49, with some post-secondary education and not hispanic) we get a probability of 22% for supporting Biden. For our upper probability (black woman, from Vermont, aged 18-35, with post-secondary or higher education and considers themselves hispanic) we get a probability of 99% for supporting Joe Biden.
 
 # Results
 
