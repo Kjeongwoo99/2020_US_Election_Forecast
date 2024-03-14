@@ -168,6 +168,28 @@ library(rstanarm)
 
 # Discussion
 
+## Analyzing Voter Preferences Across Demographics
+
+The analysis reveals critical insights into how education, age, race influence voting behavior. Contrary to conventional wisdom and past electoral analyses, our findings indicate a divergent pattern in voting behavior among different educational groups. The shift in party allegiance among non-college white voters from Democrats to Republicans and the nuanced preferences of voters with 'Some college' and 'Postgrad' education levels challenge the stereotypical narratives that educational attainment leads to an increase in support for the Democrats. This group, especially highly educated 'Postgrad' group being the second highest supporters suggest a reevaluation of Democrats' strategies to appeal to educated voters concerned with economic policies and national security. However, according to our data, the Republicans fail to attract voters as highest proportion of support among the four educational groups remain under 40 percent.
+
+@tbl-voters-intention-to-vote-for-trump suggests that 
+
+shows that majority of Biden's support 
+
+The increasing propensity of older voters to lean towards the Democratic nominee, potentially driven by concerns over COVID-19 and healthcare, marks a significant shift in voting patterns. Similarly, the racial dynamics observed, with non-white demographics showing strong support for the Democratic party, reflect broader national conversations on race, immigration, and identity.
+
+## Geographical Divides and Electoral Preferences
+
+From @fig-distribution-by-state, we can observe that Trump leads in mid-west of America, Montana (MT), Wyoming (WY), Mississippi (MS), Maine (ME), Missouri (MO), Kentucky (KY), and Utah (UT). Even the competing states like Louisiana (LA), New Mexico (NM), Tennessee (TN) are also mid-west part of the country, which are rural areas with low population density. This is correctly estimated since in the real world as Trump won in these states: MT, WY, MS, MA, MI, KY, UT. He also won in LA and TN, which we considered were competing states. We can go more in depth of this study with the benefit of hindsight. We estimated that the biggest victory for Trump would be Montana (MT) with just below 70%. In reality, he won by 59.6%, which is lower than we thought but still sit within our error values. The next state with the highest proportion of support for Trump was Wyoming (WY) from our model with 65%, which is close to the election poll result of 69%. We were very successful with Mississippi (MS) with an estimation of 57% and the poll result of 57.5%. Maine (ME) was another very close estimate with 52% and the poll result of 53.1%. 56.8% voted for Trump in Missouri (MO), which was slightly higher than our estimation of 51%. We estimated that only 26% of voters in Hawaii (HI) would vote for Trump with error margins of +-10%, which matched 34.3% for Trump in the election. 41.9% for Trump in Colorado (CO) lie within our estimate of 37% with +-5% margins. 
+
+There were some cases where our estimation was incorrect in terms of who won the state but the results lie within our error margins. For instance, we estimated Utah (UT) in favor of the Democrats with a slight margin of 51% for Biden but Biden only received 37.6% in the election. This still lies within our error values that we estimated to be from 43% to 58%. However, there were some errors in our estimation where our model failed to predict the Trump winning in the number of states in general. Our model predicted Louisiana (LA) for Biden with 51% but he only received 39.9% of the votes. This value is lower than our error margins. 62% of the residents in Alabama, a Republican stronghold in the last eleven presidential elections had voted for Trump while our model estimated 45% of votes for Trump. The republicans won in Florida (FL) with a slight margin of 51.2% but we predicted an estimation of 45% with +-2% margins. What we estimated to be the strongest Democrat state was North Dakota (ND) with an estimation of only 23% with +-12% margins but in reality 65.1% of the residents voted for Trump. 
+
+We were able to estimate the winning of states with some success 
+
+## Weaknesses and Implications for Future Research 
+
+Weaknesses and next steps should also be included.
+
 ## First discussion point {#sec-first-point}
 
 If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
