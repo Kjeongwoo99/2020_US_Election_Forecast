@@ -32,7 +32,7 @@ library(knitr)
 cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
 cleaned_data_survey <- read_csv(file = here("data/analysis_data/ns20191003_cleaned.csv"), show_col_types = FALSE)
 survey_model <- readRDS(file = here("models/consider_trump.rds"))
-predicton_model <- readRDS(file = here("models/census_data_with_predictions.rds"))
+prediction_model <- readRDS(file = here("models/census_data_with_predictions.rds"))
 ```
 
 # Introduction
@@ -69,9 +69,7 @@ One strength of the IPUMS survey is the fact that it provides a data with detail
 
 In processing the raw post-stratification dataset, which initially contained approximately 3.2 million records, we refined it down to about 2.3 million records. This was achieved through a meticulous selection process, ensuring the data's integrity and relevance for our analysis. In our analysis, we've selected the variables 'sex', 'race', 'stateicp', 'age', and 'educd' from the dataset. To simplify our analysis, respondents who indicated 'other' or provided no data for their sex have been excluded. Consequently, 'sex' has been categorized strictly as 'Male' and 'Female'. We've refined 'race' into five categories: 'White', 'Black', 'Asian', 'American Indian', and 'Other', based on the composition of the U.S. population, with White, Black, and Asian categories accounting for approximately 93 percent of the total.
 
-The 'stateicp' variable encompasses all U.S. states, using their standard abbreviations (e.g., 'CT' for Connecticut), and extends to 55 values to include 'Puerto Rico', 'State groupings (1980 Urban/rural sample)', 'Military/Military Reservations', 'District of Columbia', and an 'State not identified' category.
-
-Age has been grouped into four categories: '18-29', '30-49', '50-64', and '70+'. For educational attainment ('educd'), we've created four categories: 'High school or less', 'Some college', 'College degree', and 'Postgrad'.
+The 'stateicp' variable encompasses all U.S. states, using their standard abbreviations (e.g., 'CT' for Connecticut), and extends to 55 values to include 'Puerto Rico', 'State groupings (1980 Urban/rural sample)', 'Military/Military Reservations', 'District of Columbia', and an 'State not identified' category. Age has been grouped into four categories: '18-29', '30-49', '50-64', and '70+'. For educational attainment ('educd'), we've created four categories: 'High school or less', 'Some college', 'College degree', and 'Postgrad'.
  
 We excluded any unknown responses to ensure clarity and accuracy in categorization and to enhance clarity and align with survey data, we've renamed 'sex', 'stateicp', 'age', and 'educd' to 'gender', 'state', 'age_group', and 'education', respectively. This restructuring aims to streamline our analysis by ensuring each respondent is accurately categorized.
 
@@ -299,29 +297,40 @@ kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %
 # Model
 For our study, we employ a technique called multilevel regression with post-stratification (MRP). This approach involves creating a model based on a smaller data set, such as our survey data, and then extending the model's findings to a larger population.
 
+The key steps in MRP involve initially selecting a dataset for model development. In this case, we utilized survey data from the Voter Study Group (@citeSurveyData). The next step is to construct a model with this smaller dataset; here, we employed logistic regression based on the survey data, formulated as seen in equation \ref{eq:logit}. Following model creation, it is then applied to a broader dataset to estimate population characteristics. For our analysis, Census data from IPUMS (@citeIPUMS) served as this larger dataset.
+
+To predict an individual's likelihood of voting for Donald Trump, we aim to construct a logistic regression model leveraging data from the Voter Study Group (@citeSurveyData) and applying post-stratification with Census Data (@citeIPUMS). Given that logistic regression is suited for binary outcomes, we've introduced a variable, 'consider_trump', which assigns a 1 if the respondent indicates a plan to vote for Donald Trump, and a 0 for intentions to vote for other candidates, with 0 encompassing both "No" and "Other" responses.
+
+The logistic regression model takes the form of:
+
+\begin{equation}
+log(\frac{\hat{p}}{1 - \hat{p}}) = \beta_{0} + \beta_{1}x_{sex} +
+\beta_{2}x_{agegroup} + \beta_{3}x_{race} + \beta_{4}x_{state} + \beta_{5}x_{education}
+\label{eq:logit}
+\end{equation}
+
+In equation \ref{eq:logit}, each $\beta$ represents a coefficient determined through regression analysis. The variables chosen for this project are sex, age, race, education, and state. These were selected because sex, age, and race are proven to be reliable indicators of voting preferences. This decision is based on patterns such as certain states consistently favoring the Republican party, while others alternate between Democratic and Republican. Education was chosen over income because it provides a clearer picture of an individual’s background than income does.
+
+Once the logistic regression model is developed, we'll use the `predict()` function in R (@citeR) to apply our model to Census data (@citeIPUMS), breaking down the dataset into categories based on sex, race, age group, education level, and state. This will give us the likelihood of individuals within each category voting for Donald Trump. These predictions allow us to analyze potential outcomes like the popular vote winner or the electoral college vote distribution.
+
 
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
-model <- survey_model
+#| label: tbl-model-coefficients
+#| tbl-cap: Coefficients from the Model
+model <- survey_model 
+coefficients <- broom.mixed::tidy(model, conf.int = TRUE) 
 
-# Assuming 'model' is your model object from rstanarm
-library(broom.mixed)
-
-coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
-
-# Assuming you have knitr and kableExtra already installed and loaded
-library(knitr)
-library(kableExtra)
-
-knitr::kable(coefficients,
-             caption = "Coefficients from the Model",
-             digits = 2) %>%
-  kableExtra::kable_styling(latex_options = "scale_down")
-
+kable(coefficients, format = "latex", booktabs = TRUE, align = "c") %>%   kable_styling(latex_options = "scale_down", font_size = 7)
 ```
 
+@tbl-model-coefficients shows the estimates for the coefficients that will fit into our logistic regression equation. These coefficients will fit into Equation \ref{eq:logit}, and were calculated using data from the Voter Study Group (@citeSurveyData). The table is made using `kable` from `knitr` (@citeKnitr) and is formatted using `kableExtra` (@citekableExtra). 
+
+We use the `stan_glm()` function in R (@citeR) for our regression analysis, specifically because we are dealing with a binary outcome: whether a voter supports Donald Trump or not. The nature of our data suggests an S-shaped distribution rather than a linear one, making logistic regression a better fit than linear regression. This approach is advantageous, especially when paired with post-stratification, as it allows us to better represent under-represented groups in our analysis. For instance, despite having only 7 responses from Alaska in our survey data (@citeSurveyData), through multilevel regression and post-stratification, we can adjust this to effectively represent over 4500 individuals.
+
+However, there are limitations to our model. The binary outcome does not allow for consideration of third-party candidates or non-voters, although this limitation is mitigated by our focus on the main candidates. More critically, our model's accuracy is heavily dependent on the quality of our survey data. Any inaccuracies or the need for adjustments in the survey can significantly impact our findings.
 
 ```{r}
 #| echo: false
@@ -330,19 +339,28 @@ knitr::kable(coefficients,
 #| label: fig-coefficient-estimates
 #| fig-cap: Coefficient Estimates
 
-model <- survey_model
-
-coefficients <- broom.mixed::tidy(model, conf.int = TRUE)
-# plot our coefficients with error bars to show the upper and lower
-# estimates for the coefficients
-coefficients %>% ggplot(aes(estimate, term)) +
-  geom_point() +
-  geom_errorbar(aes(xmin = conf.low, xmax = conf.high)) +
-  labs(title = "Coefficient Estimates",
-       x = "Estimate", y = "Coefficient") +
-  theme(axis.text.y = element_text(size = 5))
+coefficients %>%
+  ggplot(aes(estimate, term)) + geom_point() + geom_errorbar(aes(xmin = conf.low, xmax = conf.high)) + labs(title = "Coefficient Estimates", x = "Estimate", y = "Coefficient") +   theme(axis.text.y = element_text(size = 5))
 ```
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
+
+@fig-coefficient-estimates presents the coefficients derived from logistic regression on the survey data (@citeSurveyData). It also includes error bars, indicating the confidence interval for each coefficient estimate. In interpreting these coefficients, it's essential to understand that positive values suggest a greater likelihood of voting for Donald Trump, whereas negative values indicate a tendency to vote for other candidates, such as Joe Biden.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: tbl-prediction-probabilities
+#| tbl-cap: Example of Prediction model
+
+# Select only the first 10 rows for the table
+probability_subset <- head(prediction_model, 10)
+
+# Create the table with kable and format with kable_styling
+kable(probability_subset, format = "latex", booktabs = TRUE, align = "c") %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"), full_width = FALSE)
+```
+
+By utilizing the results from our logistic regression model, we can formulate an equation that adheres to the structure outlined in equation \ref{eq:logit}, incorporating specific $\beta$ coefficients for each variable. Given the number of variables, detailing the equation fully is challenging. Essentially, the equation integrates the $\beta$ value of a variable if an individual's characteristic matches that variable. @tbl-prediction-probabilities offers examples of how the probability varies based on different variables.
 
 # Results
 
