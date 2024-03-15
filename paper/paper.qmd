@@ -73,10 +73,45 @@ The 'stateicp' variable encompasses all U.S. states, using their standard abbrev
  
 We excluded any unknown responses to ensure clarity and accuracy in categorization and to enhance clarity and align with survey data, we've renamed 'sex', 'stateicp', 'age', and 'educd' to 'gender', 'state', 'age_group', and 'education', respectively. This restructuring aims to streamline our analysis by ensuring each respondent is accurately categorized.
 
-@fig-distribution-by-age-group, @fig-distribution-by-gender, @fig-distribution-by-race, and @fig-distribution-by-education illustrate comparisons between survey data and post-stratification data across different variables. In these visuals, orange bars represent post-stratification data, while green bars signify survey data. The percentages displayed on each figure are rounded to the nearest tenth, introducing a potential margin of error of ±0.1% in the total values. Generally, the survey data aligns closely with the post-stratification data, maintaining a discrepancy of about 10% across most categories. Notable exceptions are observed in the '30-49' age group and the 'Some college' education level, where the differences exceed this margin.
+@fig-data-distribution-by-state, @fig-distribution-by-age-group, @fig-distribution-by-gender, @fig-distribution-by-race, and @fig-distribution-by-education illustrate comparisons between survey data and post-stratification data across different variables. In these figures, orange bars represent post-stratification data, while green bars signify survey data. The percentages displayed on each figure are rounded to the nearest tenth, introducing a potential margin of error of ±0.1% in the total values. Generally, the survey data aligns closely with the post-stratification data, maintaining a discrepancy of about 10% across most categories. Notable exceptions are observed in the '30-49' age group and the 'Some college' education level, where the differences exceed this margin.
 
-```{r}
-# insert figure for state here
+```{r fig.width=8.5, fig.height=6}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-data-distribution-by-state
+#| fig-cap: Distribution of Sample and Population by State
+# Read in the survey data
+survey_data <- cleaned_data_survey
+
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+state_survey <- survey_data %>% 
+  group_by(state) %>% 
+  summarise(n = n()) %>% 
+  mutate(pct = n/sum(n), type = "Survey",
+         group = "state")
+
+state_post_strat <- post_strat_data %>% 
+  group_by(state) %>% 
+  summarise(n = n()) %>% 
+  mutate(pct = n/sum(n), type = "Post-Strat",
+         group = "state")
+
+variables <- rbind(state_survey, state_post_strat)
+
+# plot our results, grouped by variable with each line representing
+# the proportions for the polling and post-strat data
+
+variables %>% ggplot(aes(as.factor(state), pct, group=as.factor(type), linetype = as.factor(type))) + 
+  geom_line() + 
+  facet_wrap(~group, ncol = 1, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) + # Corrected theme function
+  labs(x = "State", y = "Proportion", linetype = "Data Set",
+       title = "Distribution of Sample and Population by State") +
+  scale_y_continuous(labels = scales::percent)
+
 ```
 
 ```{r fig.width=10, fig.height=5}
@@ -249,7 +284,7 @@ ggplot(combined_education_percentages, aes(x = education, y = percentage, fill =
   scale_fill_manual(values = c("orange", "green"))
 ```
 
-@tbl-voters-intention-to-vote-for-trump shows the proportion of voters who intend to vote for Donald Trump or not. Also, @tbl-voters-intention-of-their-primary-party shows the proportion of voters' supporting party. The data used to create these table is from the @citeSurveyData. We see that Donald Trump and his party Republican are not expected to win the popular vote before we implement the model.
+@tbl-voters-intention-to-vote-for-trump shows the proportion of voters who intend to vote for Donald Trump or not. Also, @tbl-voters-intention-of-their-primary-party shows the proportion of voters' supporting party. The data used to create these table is from the Democracy Fund + UCLA Nationscape [@citeSurveyData]. We see that Donald Trump and his party Republican are not expected to win the popular vote before we implement the model.
 
 ```{r}
 #| echo: false
