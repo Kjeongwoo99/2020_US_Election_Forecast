@@ -37,9 +37,15 @@ prediction_model <- readRDS(file = here("models/census_data_with_predictions.rds
 
 # Introduction
 
-You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+The U.S. Presidential Election is a pivotal world political issue given its impacts on social, economic and cultural dimension across the world. The 2020 Election was unique in that it was held during COVID-19, characterized by unprecedented voter turnout and divided political gap between the Republicans and the Democrats. Joe Biden was elected as the President of the United States after 4 years of the former President Donald Trump era. Our research uses statistical methodologies to analyze how demographics factors such as education, state, and gender influence voter behavior and resulted in the victory of the Democratic party. By utilizing multilevel regression with post-stratification (MRP) to a large-scale national survey data and census information, we explain the roles of gender, education, and geographic location in shaping voter preferences, with a special focus on the support for Donald Trump.
 
-The remainder of this paper is structured as follows. @sec-data....
+Understanding the electoral outcomes is crucial, not only for politicians but for the broader public and policymakers aiming to grasp the evolving landscape of American politics. Traditional analyses often fall short of capturing the relationships between voter demographics and electoral preferences. There are growing gaps between the groups in each education, gender and state level and this study responds to this need by employing MRP, a technique that allows accurate inferences about the voting behavior of diverse population segments.
+
+Our findings reveal significant variations in voter support across different states and educational backgrounds and gender. The analysis points to a divergent pattern in voting behavior among different educational groups, challenging stereotypical narratives about educational attainment and party allegiance. We find that there is an increase in support for the Republicans from the voters with high education level in this election. We also find the gender gap between men and women where men are more supportive of Trump while women tend to favor Biden. Lastly, we discover the the strong preference for Biden from big cities in the west and the east coast while Trump's supporters are concentrated in the mid-west and suburb cities. 
+
+The importance of our study extends beyond academic circles, offering valuable perspectives for political strategists, journalists, and citizens alike. By providing a clearer picture of the demographic factors that influenced the 2020 election, our research aids in the development of more informed political strategies and fosters a deeper understanding of American democracy. Furthermore, our methodology showcases the potential of advanced statistical techniques to enhance the accuracy and depth of electoral forecasts.
+
+The paper begins by introducing the broader context and motivation behind our study. It then discusses the specifics of the data sources and the variables that we considered important. This is followed by presentation of the data and discussion of our findings regarding education, gender and state in voter preference. 
 
 # Data {#sec-data}
 
