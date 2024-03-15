@@ -49,7 +49,7 @@ The paper begins by introducing the broader context and motivation behind our st
 
 # Data {#sec-data}
 
-We have used two datasets for this study. One is the U.S election survey data of Democracy Fund + UCLA Nationscape dataset from the Voter Study Group, conducted on October 3, 2019. Second is the census data from IPUMS America Census Service, which is used as the post-stratification data for the survey data to adjust the weight.
+We have used two datasets for this study. One is the U.S election survey data of Democracy Fund + UCLA Nationscape dataset from the Voter Study Group [@citeSurveyData], conducted on October 3, 2019. Second is the census data from IPUMS America Census Service [@citeIPUMS], which is used as the post-stratification data for the survey data to adjust the weight.
 
 ## Survey Data
 
@@ -66,59 +66,6 @@ Education is also an interesting factor. In the past, non-college white voters u
 Race also needs some attention because normally non-white groups are highly in favour of Democrats regardless of candidates and white swing by depending on candidates. According to the statistics collected in 2016, 93% of black, 71% of Latino, 68% of Asian support democrats while only 41% of white support democrats [@Prokop]. As white voters make up 74% of the voting population, it is really important for both parties to attain this demographic group.
 
 Lastly, states are very important as some states historically favor conservatives while some states vote for democrats. In general, the west and the east coasts are democrat supporters whereas south are conservative supporters.
-
-## Post-stratification Data
-
-IPUMS ("Integrated Public Use Microdata Series") is a website that offers database of samples of the American population from the American Community Surveys of 2000-present. These samples provide rich qualitative information on the long-term changes in the population. We selected the '2019 ACS' data [@citeIPUMS] as the post-stratification dataset for our research. The ACS is an ongoing survey that collects data monthly, which is then combined into 1-year, 3-year, and 5-year aggregates. It then uses stratified sampling where the U.S population is broken down into sub-groups and initial weights are assigned to each respondent. 
-
-One strength of the IPUMS survey is the fact that it provides a data with detailed demographic of the U.S. population with social, economic and housing characteristics, which is very useful in our analysis of the 2020 U.S presidential election forecast. The longitudinal data of this survey also allows researchers to analyze trends over time. The U.S. Census Bureau offers credibility of the data with high quality checks. The post-stratification process ensures correcting for sampling biases and non-response. On the other hand, since the survey relies on self-report, there lies a risk of response bias inherently. While it is an ongoing survey, there is still a time lag between the data collection and data availability. However, the large sample size, consistency and reliability of the data collection, the integrated data over time with post-stratification can justify the decision to utilize IPUMS data over other sources. 
-
-In processing the raw post-stratification dataset, which initially contained approximately 3.2 million records, we refined it down to about 2.3 million records. This was achieved through a meticulous selection process, ensuring the data's integrity and relevance for our analysis. In our analysis, we've selected the variables 'sex', 'race', 'stateicp', 'age', and 'educd' from the dataset. To simplify our analysis, respondents who indicated 'other' or provided no data for their sex have been excluded. Consequently, 'sex' has been categorized strictly as 'Male' and 'Female'. We've refined 'race' into five categories: 'White', 'Black', 'Asian', 'American Indian', and 'Other', based on the composition of the U.S. population, with White, Black, and Asian categories accounting for approximately 93 percent of the total.
-
-The 'stateicp' variable encompasses all U.S. states, using their standard abbreviations (e.g., 'CT' for Connecticut), and extends to 55 values to include 'Puerto Rico', 'State groupings (1980 Urban/rural sample)', 'Military/Military Reservations', 'District of Columbia', and an 'State not identified' category. Age has been grouped into four categories: '18-29', '30-49', '50-64', and '70+'. For educational attainment ('educd'), we've created four categories: 'High school or less', 'Some college', 'College degree', and 'Postgrad'.
- 
-We excluded any unknown responses to ensure clarity and accuracy in categorization and to enhance clarity and align with survey data, we've renamed 'sex', 'stateicp', 'age', and 'educd' to 'gender', 'state', 'age_group', and 'education', respectively. This restructuring aims to streamline our analysis by ensuring each respondent is accurately categorized.
-
-@fig-data-distribution-by-state, @fig-distribution-by-age-group, @fig-distribution-by-gender, @fig-distribution-by-race, and @fig-distribution-by-education illustrate comparisons between survey data and post-stratification data across different variables. In these figures, orange bars represent post-stratification data, while green bars signify survey data. The percentages displayed on each figure are rounded to the nearest tenth, introducing a potential margin of error of ±0.1% in the total values. Generally, the survey data aligns closely with the post-stratification data, maintaining a discrepancy of about 10% across most categories. Notable exceptions are observed in the '30-49' age group and the 'Some college' education level, where the differences exceed this margin.
-
-```{r fig.width=8.5, fig.height=6}
-#| message: false
-#| echo: false
-#| warning: false
-#| label: fig-data-distribution-by-state
-#| fig-cap: Distribution of Sample and Population by State
-# Read in the survey data
-survey_data <- cleaned_data_survey
-
-# Read in the post-stratification data
-post_strat_data <- cleaned_data_post_strat
-
-state_survey <- survey_data %>% 
-  group_by(state) %>% 
-  summarise(n = n()) %>% 
-  mutate(pct = n/sum(n), type = "Survey",
-         group = "state")
-
-state_post_strat <- post_strat_data %>% 
-  group_by(state) %>% 
-  summarise(n = n()) %>% 
-  mutate(pct = n/sum(n), type = "Post-Strat",
-         group = "state")
-
-variables <- rbind(state_survey, state_post_strat)
-
-# plot our results, grouped by variable with each line representing
-# the proportions for the polling and post-strat data
-
-variables %>% ggplot(aes(as.factor(state), pct, group=as.factor(type), linetype = as.factor(type))) + 
-  geom_line() + 
-  facet_wrap(~group, ncol = 1, scales = "free_x") + 
-  theme(axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) + # Corrected theme function
-  labs(x = "State", y = "Proportion", linetype = "Data Set",
-       title = "Distribution of Sample and Population by State") +
-  scale_y_continuous(labels = scales::percent)
-
-```
 
 ```{r fig.width=10, fig.height=5}
 #| echo: false
@@ -208,6 +155,45 @@ ggplot(combined_gender_percentages, aes(x = gender, y = percentage, fill = datas
   scale_fill_manual(values = c("orange", "green"))
 ```
 
+```{r fig.width=8.5, fig.height=5}
+#| message: false
+#| echo: false
+#| warning: false
+#| label: fig-data-distribution-by-state
+#| fig-cap: Distribution of Sample and Population by State
+# Read in the survey data
+survey_data <- cleaned_data_survey
+
+# Read in the post-stratification data
+post_strat_data <- cleaned_data_post_strat
+
+state_survey <- survey_data %>% 
+  group_by(state) %>% 
+  summarise(n = n()) %>% 
+  mutate(pct = n/sum(n), type = "Survey",
+         group = "state")
+
+state_post_strat <- post_strat_data %>% 
+  group_by(state) %>% 
+  summarise(n = n()) %>% 
+  mutate(pct = n/sum(n), type = "Post-Strat",
+         group = "state")
+
+variables <- rbind(state_survey, state_post_strat)
+
+# plot our results, grouped by variable with each line representing
+# the proportions for the polling and post-strat data
+
+variables %>% ggplot(aes(as.factor(state), pct, group=as.factor(type), linetype = as.factor(type))) + 
+  geom_line() + 
+  facet_wrap(~group, ncol = 1, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle=90, hjust = 1, vjust = 0.5)) + # Corrected theme function
+  labs(x = "State", y = "Proportion", linetype = "Data Set",
+       title = "Distribution of Sample and Population by State") +
+  scale_y_continuous(labels = scales::percent)
+
+```
+
 ```{r fig.width=10, fig.height=5}
 #| echo: false
 #| message: false
@@ -248,6 +234,19 @@ ggplot(combined_race_percentages, aes(x = race, y = percentage, fill = dataset))
   theme_minimal() +
   scale_fill_manual(values = c("orange", "green"))
 ```
+## Post-stratification Data
+
+IPUMS ("Integrated Public Use Microdata Series") is a website that offers database of samples of the American population from the American Community Surveys of 2000-present. These samples provide rich qualitative information on the long-term changes in the population. We selected the '2019 ACS' data [@citeIPUMS] as the post-stratification dataset for our research. The ACS is an ongoing survey that collects data monthly, which is then combined into 1-year, 3-year, and 5-year aggregates. It then uses stratified sampling where the U.S population is broken down into sub-groups and initial weights are assigned to each respondent. 
+
+One strength of the IPUMS survey is the fact that it provides a data with detailed demographic of the U.S. population with social, economic and housing characteristics, which is very useful in our analysis of the 2020 U.S presidential election forecast. The longitudinal data of this survey also allows researchers to analyze trends over time. The U.S. Census Bureau offers credibility of the data with high quality checks. The post-stratification process ensures correcting for sampling biases and non-response. On the other hand, since the survey relies on self-report, there lies a risk of response bias inherently. While it is an ongoing survey, there is still a time lag between the data collection and data availability. However, the large sample size, consistency and reliability of the data collection, the integrated data over time with post-stratification can justify the decision to utilize IPUMS data over other sources. 
+
+In processing the raw post-stratification dataset, which initially contained approximately 3.2 million records, we refined it down to about 2.3 million records. This was achieved through a meticulous selection process, ensuring the data's integrity and relevance for our analysis. In our analysis, we've selected the variables 'sex', 'race', 'stateicp', 'age', and 'educd' from the dataset. To simplify our analysis, respondents who indicated 'other' or provided no data for their sex have been excluded. Consequently, 'sex' has been categorized strictly as 'Male' and 'Female'. We've refined 'race' into five categories: 'White', 'Black', 'Asian', 'American Indian', and 'Other', based on the composition of the U.S. population, with White, Black, and Asian categories accounting for approximately 93 percent of the total.
+
+The 'stateicp' variable encompasses all U.S. states, using their standard abbreviations (e.g., 'CT' for Connecticut), and extends to 55 values to include 'Puerto Rico', 'State groupings (1980 Urban/rural sample)', 'Military/Military Reservations', 'District of Columbia', and an 'State not identified' category. Age has been grouped into four categories: '18-29', '30-49', '50-64', and '70+'. For educational attainment ('educd'), we've created four categories: 'High school or less', 'Some college', 'College degree', and 'Postgrad'.
+ 
+We excluded any unknown responses to ensure clarity and accuracy in categorization and to enhance clarity and align with survey data, we've renamed 'sex', 'stateicp', 'age', and 'educd' to 'gender', 'state', 'age_group', and 'education', respectively. This restructuring aims to streamline our analysis by ensuring each respondent is accurately categorized.
+
+All figures showed in the data section illustrate comparisons between survey data and post-stratification data across different variables. First, the data comparison by state shows that the correspondence between the survey and post-stratification data for each state is quite good, further emphasize the overall reliability of the survey methodology in capturing diverse demographic characteristics. (see @fig-data-distribution-by-state) In other four figures, orange bars represent post-stratification data, while green bars signify survey data. The percentages displayed on each figure are rounded to the nearest tenth, introducing a potential margin of error of ±0.1% in the total values. Generally, the survey data aligns closely with the post-stratification data, maintaining a discrepancy of about 10% across most categories. Notable exceptions are observed in the '30-49' age group and the 'Some college' education level, where the differences exceed this margin. (see @fig-distribution-by-age-group, @fig-distribution-by-gender, @fig-distribution-by-race, and @fig-distribution-by-education)
 
 ```{r fig.width=10, fig.height=5}
 #| echo: false
@@ -290,7 +289,7 @@ ggplot(combined_education_percentages, aes(x = education, y = percentage, fill =
   scale_fill_manual(values = c("orange", "green"))
 ```
 
-@tbl-voters-intention-to-vote-for-trump shows the proportion of voters who intend to vote for Donald Trump or not. Also, @tbl-voters-intention-of-their-primary-party shows the proportion of voters' supporting party. The data used to create these table is from the Democracy Fund + UCLA Nationscape [@citeSurveyData]. We see that Donald Trump and his party Republican are not expected to win the popular vote before we implement the model.
+@tbl-voters-intention-to-vote-for-trump shows the proportion of voters who intend to vote for Donald Trump or not. Apparently, more than half of the respondents, which is 55.30% choose not to vote for Donald Trump. Also, @tbl-voters-intention-of-their-primary-party shows the proportion of voters' supporting party. The data used to create these table is from the Democracy Fund + UCLA Nationscape [@citeSurveyData]. We see that Donald Trump and his party Republican are not expected to win the popular vote before we implement the model.
 
 ```{r}
 #| echo: false
@@ -576,55 +575,6 @@ We were able to estimate the winning states for each candidate with some success
 One major limitation of this research is the reliance on the quality of the survey data collected in October 2019. Any inaccuracies  COVID-19 affected the collection of the survey data, so we had to use the 2019 data. The election was held in November 2020, so there exists a time gap of one year since the data collection and the election, which may have affected the voting as one year gives enough time for voters to change their mind. In addition, any inaccuracies or biases within the survey could significantly impact the model's forecasts, + data lost in the process. 
 
 Future research should explore models that can accommodate multiple electoral outcomes, including third-party voting and more variables if possible. Using more accurate or applicable real-time data sources could complement traditional survey methods and offer fresh insights into voter preferences. Societal norms and political landscapes change over time. Therefore, future research should focus on emerging social issues that may influence voter behavior. In the 2024 Presidential election, climate change, technology policy and social justice could play more significant roles in shaping electoral outcomes. 
-
-
-\newpage
-
-\appendix
-
-# Appendix {.unnumbered}
-
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
-
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows...
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
-
-
-```
-
-## Diagnostics
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
-
-
-```
 
 \newpage
 
