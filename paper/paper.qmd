@@ -553,13 +553,11 @@ The analysis reveals critical insights into how education, race, gender and age 
 
 + race
 
-+ gender: American woman for the Democratic party over the last 40 years [citation]. 
+@tbl-model-coefficients shows how males were more likely than females to have a favorable view of Trump, which correctly captured the tendency of voters by sex since 53% of men favored Trump whereas 42% of women favored Trump [@theWashingtonPost]. Gender does not act as a uniform lens through which policy positions are viewed, however, it is still an important issue especially regarding Trump in this election due to his words and actions that may viewed as sexist. Historically, women have been leaning more liberal than men. This gender gap has varied across different elections but has remained a consistent feature of the American political landscape since the 1980s [@mary]. While men's preferences of a smaller government remained stable, women's preference for a bigger government increased [@pewresearchcenter]. This shift contributed to a widening gap in presidential job approval with men remaining more supportive attitude of Trump. Solanas (2018) suggests that Trump's adminstrations increased investment in health, education, and security for girls, teenagers, migrant women, and support measures for pregnant women, as well as the promotion of women in STEM fields and efforts against gender violence. However, this is no secret that Trump is very conservative in treating gender equality. His openly sexist comments and behaviours presaged potential limitations on women's rights and freedoms, which may have contributed to the gender gap further [@elcano]. 
 
-+ age In general, younger people tend to be more liberal and as people get older they become more conservative. From our analysis, we observe a trend where ''. 36% of '18-29' group, 46% of '30-44', 50% of 45-64 group, 52% of '+65' group voted for trump respectively in the last election (washington post + add citation). We see a continuous increase in favour of Trump as people get older. 
+In general, younger people tend to be more liberal and as people get older they become more conservative. From our analysis, we observe a trend where ''. 36% of '18-29' group, 46% of '30-44', 50% of 45-64 group, 52% of '+65' group voted for trump respectively in the last election [@theWashingtonPost]. We see a continuous increase in favour of Trump as people get older. 
 
 @tbl-voters-intention-to-vote-for-trump suggests that 
-
-shows that majority of Biden's support 
 
 The increasing propensity of older voters to lean towards the Democratic nominee, potentially driven by concerns over COVID-19 and healthcare, marks a significant shift in voting patterns. Similarly, the racial dynamics observed, with non-white demographics showing strong support for the Democratic party, reflect broader national conversations on race, immigration, and identity.
 
