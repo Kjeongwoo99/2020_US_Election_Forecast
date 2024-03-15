@@ -407,7 +407,6 @@ By utilizing the results from our logistic regression model, we can formulate an
 library(rstanarm)
 
 survey_data$consider_trump_binary <- ifelse(survey_data$consider_trump == "Yes", 1, 0)
-survey_model_now <- glm(consider_trump_binary ~ gender + education + age_group + race + state,data = survey_data,family = binomial(link = "logit"))
   
 # group by each demographic
 post_props <- post_strat_data %>% 
@@ -417,14 +416,14 @@ post_props <- post_strat_data %>%
   mutate(prop = n/sum(n))
 
 # estimate of the model 
-post_props$estimate <- predict.glm(survey_model_now, newdata = post_props,
+post_props$estimate <- predict(survey_model, newdata = post_props,
                           type = "response")
 
 # new column with the number of voters for Trump
 post_props <- post_props %>% mutate(num_voters = n*estimate)
 
 # error terms 
-errors <- predict.glm(survey_model_now, newdata = post_props,
+errors <- predict(survey_model, newdata = post_props,
                       type = "response", se.fit = T)
 lower <- errors$fit - errors$se.fit
 upper <- errors$fit + errors$se.fit
@@ -478,7 +477,7 @@ stateprops_plot %>% ggplot(aes(y = reorder(state, trump_predict), x = trump_pred
   geom_point(stat = "identity") +
   geom_errorbar(aes(xmin = trump_prop_lower, xmax = trump_prop_upper)) +
   geom_vline(xintercept = 0.5, linetype = "dashed", color = "green") +
-  labs(title = "Estimated Proportion of State Voting for Joe Biden",
+  labs(title = "Estimated Proportion of State Voting for Donal Trump",
        x = "Percentage", y= "State",
        color = "Support") +
   scale_x_continuous(labels = scales::percent) +
@@ -486,10 +485,9 @@ stateprops_plot %>% ggplot(aes(y = reorder(state, trump_predict), x = trump_pred
   scale_color_manual(values = c("Blue", "Red"))
 ```
 
-Figure \@ref(fig:fig-distribution-by-state) shows us the estimated of proportion of support for Trump and Biden by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Biden (blue) or Trump (red) in each state. Horizontal Lines extending from the dots represent confidence intervals for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 50 percent to slightly higher than 80 percent for Trump in MT (Massachusetts). The dashed green line in the middle at the 50 percent mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest at the top to the lowest at the bottom.
+Figure @fig-distribution-by-state shows us the estimated of proportion of support for Trump and Biden by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Biden (blue) or Trump (red) in each state. Horizontal lines extending from the dots represent error bars for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 55% to slightly higher than 80% for Trump in MT (Massachusetts). The dashed green line in the middle at the 50% mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest to the lowest. 
 
-From figure, it seems that majority of the states support Biden. Only 7 states out of 51 have its point estimate greater than 50 percent for Trump. However, the horizontal lines of confidence intervals of some states overlapping the green mark give some hope for the Republicans. However, excluding these contesting states, our model suggests that only 3 states are definitely in favor of Trump whereas 
-35 states are definitely supporting Biden. 
+From @fig-distribution-by-state, it seems that the majority of the states support Biden. Only 7 states out of 51 have its point estimate greater than 50 percent for Trump. The horizontal lines of confidence intervals of some states overlapping the green mark give some hope for the Republicans. Excluding these contesting states, however, our model suggests that only 3 states are definitely in favor of Trump whereas 35 states are definitely supporting Biden. 
 
 ```{r} 
 #| echo: false
@@ -506,13 +504,13 @@ post_props_education <- post_strat_data %>%
   mutate(prop = n/sum(n))
 
 # Generate predictions for each grouped cell based on education
-post_props_education$estimate <- predict.glm(survey_model_now, newdata = post_props_education, type = "response")
+post_props_education$estimate <- predict(survey_model, newdata = post_props_education, type = "response")
 
 # Calculate the number of voters from each cell voting for Trump
 post_props_education <- post_props_education %>% mutate(num_voters = n * estimate)
 
 # Get errors for the prediction
-errors_education <- predict.glm(survey_model_now, newdata = post_props_education,
+errors_education <- predict(survey_model, newdata = post_props_education,
                                 type = "response", se.fit = TRUE)
 lower_education <- errors_education$fit - errors_education$se.fit
 upper_education <- errors_education$fit + errors_education$se.fit
@@ -543,15 +541,15 @@ vote_trump_education %>% ggplot(aes(y = reorder(education, trump_predict), x = t
 
 ```
 
-Figure \@ref(fig:fig-distribution-by-educationlevel) presents the estimated proportion of voters for Trump by education level, divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. Each black dot represents the point estimate of the proportion of voters within the corresponding education category who are predicted to vote for Trump. The horizontal lines extending to the left and right of each dot represent the confidence intervals around the estimate, which reflect the uncertainty. 
+@fig-distribution-by-educationlevel presents the estimated proportion of voters for Trump by education level, divided into four categories: 'High school or less', 'Some college', 'College degree', 'Postgrad'. Each black dot represents the point estimate of the proportion of voters within the corresponding education category who are predicted to vote for Trump. The horizontal lines extending to the left and right of each dot represent the error terms around the estimate, which reflect the uncertainty. 
 
-It shows that regardless of education level, the level of support for Trump lies below 40 percent. The Republican party does not have majority, including the error bars across all education levels. Voters with "High school or less" education appear to have the lowest estimated support for Trump, which does not align with various exit polls and analyses from the 2020 election suggesting that Trump had substantial support among voters without a college degree. Conversely, Voters with 'Some college' and 'Postgrad' education are the two groups that are more in support of Trump, which is exactly the opposite of what we have expected.
+It shows that regardless of education level, the level of support for Trump lies below 40% The Republican party does not have the majority, including the error bars across all education levels. Voters with "High school or less" education level appear to have the lowest estimated support for Trump, which does not align with various exit polls and analyses from the 2020 election suggesting that Trump had substantial support among voters without a college degree. Conversely, Voters with 'Some college' and 'Postgrad' education are the two groups that are more in support of Trump, which is exactly the opposite of what we have expected.
 
 # Discussion
 
 ## Analyzing Voter Preferences Across Education, Race, Gender AND Age
 
-The analysis reveals critical insights into how education, race, gender and age influence voting behavior. Contrary to conventional wisdom and past electoral analyses, our findings indicate a divergent pattern in voting behavior among different educational groups. The shift in party allegiance among non-college voters from Republicans to Democrats and the the dominance of popularity of the Republicans with 'Some college' and 'Postgrad' education levels challenge the stereotypical narratives that educational attainment leads to an increase in support for the Democrats. This group, especially highly educated 'Postgrad' group being the second highest supporters suggest a reevaluation of Democrats' strategies to appeal to educated voters concerned with economic policies and national security. However, according to our analysis, the Republicans fail to attract voters as highest proportion of support among the four educational groups remain under 40 percent. This almost certainly predicts that Joey Biden will become the president of the United States. This coincides with the election results where Biden won 55% of the votes from the college graduates while Trump gained 43%. Our analysis of 37% of voters college degree and 37.5% of postgrad suggest are in line with the results. However, this model has failed to estimate the winning of Trump from less educated group since we estimated 39% from voters with 'some college degree' and 36.5% from voters with 'High school or less' 
+The analysis reveals critical insights into how education, race, gender and age influence voting behavior. Contrary to conventional wisdom and past electoral analyses, our findings indicate a divergent pattern in voting behavior among different educational groups. The shift in party allegiance among non-college voters from Republicans to Democrats and the the dominance of popularity of the Republicans with 'Some college' and 'Postgrad' education levels challenge the stereotypical narratives that educational attainment leads to an increase in support for the Democrats. This group, especially highly educated 'Postgrad' group being the second highest supporters suggest a reevaluation of Democrats' strategies to appeal to educated voters concerned with economic policies and national security. However, according to our analysis, the Republicans fail to attract voters as highest proportion of support among the four educational groups remain under 40%. This almost certainly predicts that Joe Biden will become the president of the United States. This coincides with the election results where Biden won 55% of the votes from the college graduates while Trump gained 43% [@theWashingtonPost]. Our analysis of 37% of voters college degree and 37.5% of postgrad suggest are in line with the results. However, this model has failed to estimate the winning of Trump from less educated group since we estimated 39% from voters with 'some college degree' and 36.5% from voters with 'High school or less' whereas the post-election results show 50% for Trump from 'Some college or less' [@theWashingtonPost]. 
 
 + race
 
