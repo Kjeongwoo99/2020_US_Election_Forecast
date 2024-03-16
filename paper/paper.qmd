@@ -401,11 +401,12 @@ kable(probability_subset, format = "latex", booktabs = TRUE, align = "c") %>%
 
 By utilizing the results from our logistic regression model, we can formulate an equation that adheres to the structure outlined in equation \ref{eq:logit}, incorporating specific $\beta$ coefficients for each variable. Given the number of variables, detailing the equation fully is challenging. Essentially, the equation integrates the $\beta$ value of a variable if an individual's characteristic matches that variable. @tbl-prediction-probabilities offers examples of how the probability varies based on different variables.
 
-
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
+#| label: fig-distribution-by-state
+#| fig-cap: Distribution of Sample and Population by State
 
 library(rstanarm)
 
@@ -419,46 +420,33 @@ post_props <- post_strat_data %>%
   mutate(prop = n/sum(n))
 
 # estimate of the model 
-post_props$estimate <- predict(survey_model, newdata = post_props,
-                          type = "response")
+post_props$estimate <- predict(survey_model, newdata = post_props, type = "response")
 
 # new column with the number of voters for Trump
 post_props <- post_props %>% mutate(num_voters = n*estimate)
 
 # error terms 
-errors <- predict(survey_model, newdata = post_props,
-                      type = "response", se.fit = T)
+errors <- predict(survey_model, newdata = post_props, type = "response", se.fit = T)
 lower <- errors$fit - errors$se.fit
 upper <- errors$fit + errors$se.fit
 
 # combine errors with proportions
 post_props_error <- cbind(post_props, lower, upper)
-post_props_error <- post_props_error %>% 
-  rename("lower" = ...10,
-         "upper" = ...11)
+post_props_error <- post_props_error %>% rename("lower" = ...10, "upper" = ...11)
 
 # new column of voters for trump 
-post_props_error <- post_props_error %>% mutate(num_voters_lower = n*lower,
-                                num_voters_upper = n*upper)
+post_props_error <- post_props_error %>% 
+  mutate(num_voters_lower = n*lower, num_voters_upper = n*upper)
 
 # confidence intervals for errors 
-vote_trump <- post_props_error %>% mutate(trump_prop=estimate*prop,
-                                       trump_prop_lower = lower*prop,
-                                       trump_prop_upper = upper*prop) %>%
+vote_trump <- post_props_error %>% 
+  mutate(trump_prop=estimate*prop, 
+         trump_prop_lower = lower*prop,
+         trump_prop_upper = upper*prop) %>%
   group_by(state) %>%
   summarise(trump_predict = sum(trump_prop),
             trump_prop_lower = sum(trump_prop_lower),
             trump_prop_upper = sum(trump_prop_upper))
-
-```
-
-
-```{r} 
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-distribution-by-state
-#| fig-cap: Distribution of Sample and Population by Education
 
 # state proportions for survey data
 survey_props <- survey_data %>% 
@@ -468,27 +456,29 @@ survey_props <- survey_data %>%
 
 # combining survey data with the post-stratification data
 combined_trump <- inner_join(survey_props, vote_trump, by = "state")
-combined_trump  <- combined_trump %>% 
-  filter(consider_trump_binary == 1)
+combined_trump  <- combined_trump %>% filter(consider_trump_binary == 1)
 
 stateprops_plot <- combined_trump %>% arrange(desc(trump_predict)) %>% 
   mutate(support = ifelse(trump_predict >= 0.5, "Yes", "No"))
 
-# a state plot of the result
-stateprops_plot %>% ggplot(aes(y = reorder(state, trump_predict), x = trump_predict, 
-                               color = support)) +
-  geom_point(stat = "identity") +
+# define colors 
+support_colors <- c("No" = "Blue", "Yes" = "Red")
+
+# state plot
+ggplot(stateprops_plot, aes(y = reorder(state, trump_predict), 
+                            x = trump_predict, color = support)) +
+  geom_point() +
   geom_errorbar(aes(xmin = trump_prop_lower, xmax = trump_prop_upper)) +
-  geom_vline(xintercept = 0.5, linetype = "dashed", color = "green") +
-  labs(title = "Estimated Proportion of State Voting for Donal Trump",
-       x = "Percentage", y= "State",
-       color = "Support Trump") +
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "orange") +
   scale_x_continuous(labels = scales::percent) +
-  theme(axis.text.y = element_text(size = 5)) +
+  labs(title = "Estimated Proportion of State Voting for Donald Trump",
+       x = "Percentage", y= "State",
+       color = "Candidate") +
+  theme(axis.text.y = element_text(size = 5), legend.position = "right") +
   scale_color_manual(values = c("Blue", "Red"))
 ```
 
-@fig-distribution-by-state shows us the estimated of proportion of support for Trump or not by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Trump (red) or support for any other candidates including Joe Biden (blue) in each state. Horizontal lines extending from the dots represent error bars for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 55% to slightly higher than 80% for Trump in MT (Massachusetts). The dashed green line in the middle at the 50% mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest to the lowest.
+@fig-distribution-by-state shows us the estimated of proportion of support for Trump or not by state using MRP with the inclusion of error terms. Each dot represents the point estimate of the proportion of support for Trump (red) or support for any other candidates including Joe Biden (blue) in each state. Horizontal lines extending from the dots represent error bars for these estimates. The length of each line indicates the uncertainty associated with each estimate. For instance, we can see that this uncertainty lies between 55% to slightly higher than 80% for Trump in MT (Massachusetts). The dashed orange line in the middle at the 50% mark represents the threshold for majority support. On the y-axis, each state is listed with its abbreviations and is ordered based on the proportion of support for Trump from the highest to the lowest.
 
 From @fig-distribution-by-state, it seems that the majority of the states do not support Trump. Only 7 states out of 51 have a point estimate greater than 50% for Trump. The horizontal lines of confidence intervals of some states overlapping the green mark give some hope for the Republicans. Excluding these contesting states, however, our model suggests that only 3 states are definitely in favor of Trump whereas 35 states are not considering supporting for Trump.
 
@@ -499,29 +489,30 @@ From @fig-distribution-by-state, it seems that the majority of the states do not
 #| label: fig-distribution-by-educationlevel
 #| fig-cap: How different education levels of voters affect voting for Trump
 
-# Aggregating data by education level
+# group by education level
 post_props_education <- post_strat_data %>% 
-  group_by(education, race, age_group, gender, state) %>%  # Adjust based on variables of interest
+  group_by(education, race, age_group, gender, state) %>%  
   summarise(n = n(), .groups ='drop') %>%
   group_by(education) %>%
   mutate(prop = n/sum(n))
 
-# Generate predictions for each grouped cell based on education
+# predictions based on education
 post_props_education$estimate <- predict(survey_model, newdata = post_props_education, type = "response")
 
-# Calculate the number of voters from each cell voting for Trump
+# number of voters for Trump
 post_props_education <- post_props_education %>% mutate(num_voters = n * estimate)
 
-# Get errors for the prediction
+# errors for the prediction
 errors_education <- predict(survey_model, newdata = post_props_education,
                                 type = "response", se.fit = TRUE)
 lower_education <- errors_education$fit - errors_education$se.fit
 upper_education <- errors_education$fit + errors_education$se.fit
 
-# Combine the proportions and the errors generated
-post_props_education_error <- cbind(post_props_education, lower_education, upper_education) %>% rename(lower = ...10, upper = ...11)
+# combine the proportions and the errors
+post_props_education_error <- cbind(post_props_education, lower_education, upper_education) %>% 
+  rename(lower = ...10, upper = ...11)
 
-# Aggregate predictions by education level
+# predictions by education level
 vote_trump_education <- post_props_education_error %>%
   mutate(trump_prop = estimate * prop,
          trump_prop_lower = lower * prop,
@@ -531,16 +522,16 @@ vote_trump_education <- post_props_education_error %>%
             trump_prop_lower = sum(trump_prop_lower),
             trump_prop_upper = sum(trump_prop_upper))
 
-vote_trump_education %>% ggplot(aes(y = reorder(education, trump_predict), x = trump_predict)) +
+# education plot
+  ggplot(vote_trump_education, aes(y = reorder(education, trump_predict), 
+                                   x = trump_predict)) +
   geom_point(stat = "identity") +
-  geom_errorbar(aes(xmin = trump_prop_lower, xmax = trump_prop_upper)) +
+  geom_errorbar(aes(xmin = trump_prop_lower, xmax = trump_prop_upper, width = 0.2)) +
   geom_vline(xintercept = 0.5, linetype = "dashed", color = "green") +
-  labs(title = "Estimated Proportion of Voters for Trump by Education Level",
-       x = "Percentage", y= "Education",
-       color = "Support") +
   scale_x_continuous(labels = scales::percent) +
-  theme(axis.text.y = element_text(size = 5)) +
-  scale_color_manual(values = c("Blue", "Red"))
+  labs(title = "Estimated Proportion of Voters for Trump by Education",
+       x = "Percentage", y= "Education") + 
+  theme_minimal() + theme(axis.text.y = element_text(size = 12))
 
 ```
 
