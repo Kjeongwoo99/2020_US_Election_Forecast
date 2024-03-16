@@ -7,7 +7,7 @@ author:
 thanks: "Code and data are available at: https://github.com/Kjeongwoo99/2020_US_Election_Result_Analysis"
 date: today
 date-format: long
-abstract: "In this study, we forecasted the 2020 U.S. Presidential Election outcomes using a sophisticated statistical technique called multilevel regression with post-stratification (MRP), applied to a large-scale national survey dataset and census data. Our findings reveal how demographic factors such as gender, education, and geographic location influence voting behavior, with particular emphasis on voter preferences for Donald Trump. The analysis highlights significant variations in voter support across gender, states and educational backgrounds and how they shape electoral outcomes. This research contributes to our understanding of the American electoral landscape, demonstrating the critical role of demographic diversity in determining the direction of political preferences and election results."
+abstract: "In this study, we analyzed the 2020 U.S. Presidential Election outcomes using a sophisticated statistical technique called multilevel regression with post-stratification (MRP), applied to a large-scale national survey dataset and census data. Our findings reveal how demographic factors such as gender, education, and geographic location influence voting behavior, with particular emphasis on voter preferences for Donald Trump. The analysis highlights significant variations in voter support across gender, states and educational backgrounds and how they shape electoral outcomes. This research contributes to our understanding of the American electoral landscape, demonstrating the critical role of demographic diversity in determining the direction of political preferences and election results."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -20,13 +20,11 @@ bibliography: references.bib
 
 library(tidyverse)
 library(palmerpenguins)
-library(ggrepel)
-library(maps)
 library(here)
 library(kableExtra)
-library(statebins)
 library(broom.mixed)
 library(knitr)
+library(rstanarm)
 
 #### Read in necessary data and model ####
 cleaned_data_post_strat <-read_csv(file = here("data/analysis_data/usa_00002_cleaned.csv"), show_col_types = FALSE)
@@ -49,7 +47,7 @@ The paper begins by introducing the broader context and motivation behind our st
 
 # Data {#sec-data}
 
-We have used two datasets for this study. One is the U.S. election survey data of Democracy Fund + UCLA Nationscape dataset from the Voter Study Group [@citeSurveyData], conducted on October 3, 2019. Second is the census data from IPUMS America Census Service [@citeIPUMS], which is used as the post-stratification data for the survey data to adjust the weight.
+We have used two datasets for this study. One is the U.S. election survey data of Democracy Fund + UCLA Nationscape dataset from the Voter Study Group [@citeSurveyData], conducted on October 3, 2019. Second is the census data from IPUMS America Census Service [@citeIPUMS], which is used as the post-stratification data for the survey data to adjust the weight. Data was collected and analyzed using R statistical programming software [@citeR], with additional packages like tidyverse [@tidyverse], rstanarm [@rstanarm] knitr [@citeKnitr], here [@here], and many others for support.
 
 ## Survey Data
 
@@ -407,8 +405,6 @@ By utilizing the results from our logistic regression model, we can formulate an
 #| warning: false
 #| label: fig-distribution-by-state
 #| fig-cap: Distribution of Sample and Population by State
-
-library(rstanarm)
 
 survey_data$consider_trump_binary <- ifelse(survey_data$consider_trump == "Yes", 1, 0)
   
