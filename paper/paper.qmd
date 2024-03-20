@@ -7,7 +7,7 @@ author:
 thanks: "Code and data are available at: https://github.com/Kjeongwoo99/2020_US_Election_Result_Analysis"
 date: today
 date-format: long
-abstract: "In this study, we analyzed the 2020 U.S. Presidential Election outcomes using a sophisticated statistical technique called multilevel regression with post-stratification (MRP), applied to a large-scale national survey dataset and census data. Our findings reveal how demographic factors such as gender, education, and geographic location influence voting behavior, with particular emphasis on voter preferences for Donald Trump. The analysis highlights significant variations in voter support across gender, states and educational backgrounds and how they shape electoral outcomes. This research contributes to our understanding of the American electoral landscape, demonstrating the critical role of demographic diversity in determining the direction of political preferences and election results."
+abstract: "In this study, we analyzed the 2020 U.S. Presidential Election outcomes using multilevel regression with post-stratification (MRP), applied to a large-scale national survey dataset and census data. Our findings reveal how demographic factors such as gender, education, and geographic location influence voting behavior, with particular emphasis on voter preferences for Donald Trump. The analysis highlights significant variations in voter support across gender, states and educational backgrounds and how they shape electoral outcomes. This research contributes to our understanding of the American electoral landscape, demonstrating the critical role of demographic diversity in determining the direction of political preferences and election results."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -43,7 +43,7 @@ Our findings reveal significant variations in voter support across different sta
 
 The importance of our study extends beyond academic, offering valuable insights for political strategists, journalists, and citizens. By providing a clearer picture of the demographic factors that influenced the 2020 election, our research aids in the development of more informed political strategies and fosters a deeper understanding of American democracy.
 
-The paper begins by introducing the broader context and motivation behind our study. It then discusses the specifics of the data sources and the variables that we considered important. This is followed by the presentation of the data and a discussion of our findings regarding education, gender, and state in voter preference. 
+The paper begins by introducing the broader context and motivation behind our study. @sec-data then discusses specifics of the data sources and the variables that we considered important. @sec-model introduces the specifics of the logistic regression model with post-stratification methods. This is followed by the presentation of the data in @sec-results and discussions of our findings regarding education, gender, and state in voter preference in @sec-discussion. 
 
 # Data {#sec-data}
 
@@ -332,7 +332,7 @@ kable(party_preference_counts, format = "latex", booktabs = TRUE, align = "c") %
   kable_styling(latex_options = c("striped", "scale_down", "hold_position"), full_width = FALSE)
 ```
 
-# Model
+# Model {#sec-model}
 For our study, we employ a technique called multilevel regression with post-stratification (MRP). This approach involves creating a model based on a smaller data set, such as our survey data, and then extending the model's findings to a larger population.
 
 The key steps in MRP involve initially selecting a dataset for model development. In this case, we utilized survey data from the Voter Study Group [@citeSurveyData]. The next step is to construct a model with this smaller dataset; here, we employed a logistic regression based on the survey data, formulated as seen in equation \ref{eq:logit}. It is then followed by appling post-stratification to a broader dataset to estimate population characteristics. For our analysis, Census data from IPUMS [@citeIPUMS] served as this larger dataset. Given that logistic regression is suited for binary outcomes, we've introduced a variable, 'consider_trump', which assigns a 1 if the respondent indicates a willingness to vote for Donald Trump, and a 0 for intentions to vote for other candidates, with 0 encompassing both "No" and "Other" responses.
@@ -353,7 +353,7 @@ We use the `stan_glm()` function in R [@citeR] for our regression analysis, spec
 
 However, there are limitations to our model. The binary outcome does not allow for consideration of third-party candidates or non-voters, although this limitation is mitigated by our focus on the main candidates. More critically, our model's accuracy is heavily dependent on the quality of our survey data. Any inaccuracies or the need for adjustments in the survey can significantly impact our findings.
 
-# Results
+# Results {#sec-results}
 
 ```{r}
 #| echo: false
@@ -536,7 +536,7 @@ vote_trump_education <- post_props_education_error %>%
 
 It shows that regardless of education level, the level of support for Trump lies below 40% The Republican party does not have the majority, including the error bars across all education levels. Voters with a "High school or less" education level appear to have the lowest estimated support for Trump, which does not align with various exit polls and analyses from the 2020 election suggesting that Trump had substantial support among voters without a college degree. Conversely, Voters with 'Some college' and 'Postgrad' education are the two groups that are more in support of Trump, which is exactly the opposite of what we expected.
 
-# Discussion
+# Discussion {#sec-discussion}
 
 ## Analyzing Voter Preferences Across Education
 

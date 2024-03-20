@@ -1,5 +1,3 @@
-# Starter folder
-
 ## Overview
 
 This repo contains the data, code, and analysis of the 2020 U.S. presidential election forecast, designed by Jiwon Choi and Jeongwoo Kim.  
